@@ -15,7 +15,7 @@ console.log(`--- Iniciando cliente ReversePort (Multiplexed) ---`);
 console.log(`Subdominio: ${subdomain}`);
 console.log(`Redirigiendo a: localhost:${localPort}`);
 
-// 1. Canal de Control
+// 1. Canal de Control (Mantener la sesión viva)
 function connectControl() {
     const controlSocket = net.connect(remotePort, remoteHost, () => {
         console.log('✅ Canal de CONTROL conectado.');
@@ -24,13 +24,16 @@ function connectControl() {
 
     controlSocket.on('data', (data) => {
         try {
-            const msg = JSON.parse(data.toString());
+            const raw = data.toString().trim();
+            if (!raw) return;
+
+            const msg = JSON.parse(raw);
             if (msg.type === 'create_connection') {
-                console.log(`📡 Solicitud de conexión: ${msg.requestId}`);
+                console.log(`⚡ Solicitud de conexión: ${msg.requestId}`);
                 createDataConnection(msg.requestId);
             }
         } catch (e) {
-            console.error('Error en mensaje de control:', e.message);
+            // Ignorar errores de parsing menores o fragmentos
         }
     });
 
@@ -44,25 +47,36 @@ function connectControl() {
     });
 }
 
-// 2. Canal de Datos (uno por cada request HTTP)
+// 2. Canal de Datos (Uno por cada request HTTP del navegador)
 function createDataConnection(requestId) {
     const remoteDataSocket = net.connect(remotePort, remoteHost, () => {
-        // Primero nos identificamos como canal de datos
+        // 2a. Identificarse como canal de datos para un request específico
         remoteDataSocket.write(JSON.stringify({ type: 'data', requestId }));
 
-        // Luego conectamos al puerto local (usamos 127.0.0.1 para evitar rollos de localhost)
+        // 2b. Conectar al servidor local del usuario
         const localSocket = net.connect(localPort, '127.0.0.1', () => {
+            console.log(`🔗 Canal de DATOS activo para request: ${requestId}`);
+
+            // Unimos los dos flujos: Internet <-> Local
             remoteDataSocket.pipe(localSocket).pipe(remoteDataSocket);
         });
 
         localSocket.on('error', (err) => {
-            console.error(`❌ Error conectando al puerto local ${localPort}:`, err.message);
+            console.error(`❌ Error conectando a localhost:${localPort}:`, err.message);
+            remoteDataSocket.destroy();
+        });
+
+        localSocket.on('close', () => {
             remoteDataSocket.destroy();
         });
     });
 
     remoteDataSocket.on('error', (err) => {
-        console.error('Error en DATA channel:', err.message);
+        console.error(`⚠️ Error en canal de datos (${requestId}):`, err.message);
+    });
+
+    remoteDataSocket.on('close', () => {
+        // Canal terminado
     });
 }
 

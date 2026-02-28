@@ -34,4 +34,4 @@ ReversePort es un servicio ligero de túneles reversos multi-usuario construido 
 - [ ] Dashboard web para monitorear los túneles activos.
 
 ---
-Construido con ❤️ por Antigravity (Advanced Agentic Coding) para benavente.
+Construido -- by_benavente.

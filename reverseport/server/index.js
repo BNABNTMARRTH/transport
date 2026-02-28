@@ -1,64 +1,85 @@
 const net = require('net');
-const express = require('express');
-const { v4: uuidv4 } = require('uuid');
 const http = require('http');
+const https = require('https');
+const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 
 const HTTP_PORT = 80;
+const HTTPS_PORT = 443;
 const TUNNEL_PORT = 8080;
 
+// --- CARGAR CERTIFICADOS SSL ---
+const certPath = '/etc/letsencrypt/live/reverseport.net';
+let sslOptions = null;
+try {
+    sslOptions = {
+        key: fs.readFileSync(`${certPath}/privkey.pem`),
+        cert: fs.readFileSync(`${certPath}/fullchain.pem`)
+    };
+    console.log('✅ Certificados SSL cargados satisfactoriamente.');
+} catch (e) {
+    console.error('❌ Error cargando certificados SSL (HTTPS no funcionará):', e.message);
+}
+
 const controlConnections = new Map(); // subdomain -> controlSocket
-const pendingRequests = new Map();   // requestId -> { reqSocket }
+const pendingRequests = new Map();   // requestId -> { reqSocket, head }
 
-const app = express();
-
+// --- TUNNEL HUB (Multiplexación Control/Data) ---
 const tunnelServer = net.createServer((socket) => {
     socket.once('data', (data) => {
         try {
-            const msg = JSON.parse(data.toString());
+            const raw = data.toString().trim();
+            if (!raw) return socket.destroy();
 
-            // 1. Registro de Canal de Control
+            const msg = JSON.parse(raw);
+
+            // 1. Canal de Control (Persistente)
             if (msg.type === 'control') {
                 const { subdomain } = msg;
-                console.log(`Control Channel activo: ${subdomain}`);
+                console.log(`[Control] Cliente conectado: ${subdomain}`);
                 controlConnections.set(subdomain, socket);
 
                 socket.on('close', () => {
+                    console.log(`[Control] Cliente desconectado: ${subdomain}`);
                     if (controlConnections.get(subdomain) === socket) {
                         controlConnections.delete(subdomain);
                     }
                 });
+                socket.on('error', () => { socket.destroy(); });
             }
 
-            // 2. Registro de Canal de Datos
+            // 2. Canal de Datos (Efímero, una por request)
             else if (msg.type === 'data') {
                 const { requestId } = msg;
                 const pending = pendingRequests.get(requestId);
 
                 if (pending) {
-                    console.log(`Data Channel vinculado para request: ${requestId}`);
+                    console.log(`[Data] Vinculando canal para request: ${requestId}`);
                     pendingRequests.delete(requestId);
 
                     const { reqSocket, head } = pending;
 
-                    // Raw piping: conectar el socket HTTP que entró, directo al túnel del VPS
+                    // RAW PIPING: Unimos el navegador (local) con el túnel (remoto)
+                    // Importante: reqSocket aquí ya es el socket desencriptado (cleartext)
                     reqSocket.pipe(socket).pipe(reqSocket);
 
-                    // Si ya habíamos leído algo del socket original (el header inicial), mandarlo primero
+                    // Enviamos los headers que ya habíamos leído
                     if (head && head.length > 0) {
                         socket.write(head);
                     }
 
-                    // Despausar el socket original
+                    // Despausamos para dejar fluir el resto del body
                     reqSocket.resume();
 
-                    reqSocket.on('error', () => { socket.destroy(); });
-                    socket.on('error', () => { reqSocket.destroy(); });
-
+                    reqSocket.on('error', () => socket.destroy());
+                    socket.on('error', () => reqSocket.destroy());
                 } else {
+                    console.warn(`[Data] requestId no encontrado o expirado: ${requestId}`);
                     socket.destroy();
                 }
             }
         } catch (e) {
+            console.error('[Tunnel] Error parseando mensaje:', e.message);
             socket.destroy();
         }
     });
@@ -66,53 +87,72 @@ const tunnelServer = net.createServer((socket) => {
     socket.on('error', () => { });
 });
 
-tunnelServer.listen(TUNNEL_PORT, () => console.log(`🚀 Hub de túneles en ${TUNNEL_PORT}`));
+tunnelServer.listen(TUNNEL_PORT, () => console.log(`🚀 Hub de Túneles en el puerto ${TUNNEL_PORT}`));
 
-// Interceptamos las conexiones desde el nivel más bajo (TCP) del servidor HTTP
-const httpServer = http.createServer();
 
-httpServer.on('connection', (reqSocket) => {
-    reqSocket.once('data', (data) => {
-        // Pausar inmediatamente
-        reqSocket.pause();
+// --- LÓGICA DE PROXY (Compartida) ---
+function handleProxy(reqSocket, data) {
+    reqSocket.pause(); // Pausamos para no perder datos mientras abrimos el túnel
 
-        const reqStr = data.toString();
-        // Buscamos el header Host:
-        const hostMatch = reqStr.match(/Host:\s*([^\s:]+)/i);
+    const raw = data.toString();
+    const hostMatch = raw.match(/Host:\s*([^\s:]+)/i);
 
-        if (hostMatch) {
-            const host = hostMatch[1];
-            const subdomain = host.split('.')[0];
-            const controlSocket = controlConnections.get(subdomain);
+    if (hostMatch) {
+        const host = hostMatch[1];
+        const subdomain = host.split('.')[0];
+        const controlSocket = controlConnections.get(subdomain);
 
-            if (controlSocket && !controlSocket.destroyed) {
-                const requestId = uuidv4();
-                pendingRequests.set(requestId, { reqSocket, head: data });
+        if (subdomain !== 'reverseport' && controlSocket && !controlSocket.destroyed) {
+            const requestId = uuidv4();
+            pendingRequests.set(requestId, { reqSocket, head: data });
 
-                // Pedirle al cliente que abra el data channel
-                controlSocket.write(JSON.stringify({ type: 'create_connection', requestId }));
+            console.log(`[Proxy] Nuevo request para '${subdomain}' -> Generando Tunnel #${requestId}`);
 
-                // Timeout a los 10 segundos
-                setTimeout(() => {
-                    if (pendingRequests.has(requestId)) {
-                        pendingRequests.delete(requestId);
-                        if (reqSocket.writable) {
-                            reqSocket.write('HTTP/1.1 504 Gateway Time-out\r\n\r\n');
-                            reqSocket.destroy();
-                        }
+            // Le pedimos al cliente que abra un canal de datos
+            controlSocket.write(JSON.stringify({ type: 'create_connection', requestId }));
+
+            // Timeout: si el cliente no abre el canal en 15s, respondemos error
+            setTimeout(() => {
+                if (pendingRequests.has(requestId)) {
+                    pendingRequests.delete(requestId);
+                    if (reqSocket.writable) {
+                        reqSocket.write('HTTP/1.1 504 Gateway Timeout\r\n\r\nTunnel timeout.');
+                        reqSocket.destroy();
                     }
-                }, 10000);
-            } else {
-                if (reqSocket.writable) {
-                    reqSocket.write('HTTP/1.1 404 Not Found\r\n\r\nSubdominio no activo.');
-                    reqSocket.destroy();
                 }
-            }
+            }, 15000);
         } else {
-            // Si no hay Host, lo botamos
-            reqSocket.destroy();
+            console.log(`[Proxy] Subdominio offline o inválido: ${subdomain}`);
+            if (reqSocket.writable) {
+                reqSocket.write('HTTP/1.1 404 Not Found\r\n\r\nReversePort: Subdominio no activo.');
+                reqSocket.destroy();
+            }
         }
+    } else {
+        reqSocket.destroy();
+    }
+}
+
+// --- SERVIDOR HTTPS (SSL Offloading / TLS Termination) ---
+if (sslOptions) {
+    const httpsServer = https.createServer(sslOptions);
+
+    // Capturamos el socket apenas se desencripta
+    httpsServer.on('secureConnection', (cleartextSocket) => {
+        cleartextSocket.once('data', (data) => {
+            handleProxy(cleartextSocket, data);
+        });
     });
+
+    httpsServer.listen(HTTPS_PORT, () => console.log(`🔒 SSL Offloading activo en puerto ${HTTPS_PORT}`));
+}
+
+// --- SERVIDOR HTTP (Redirección a HTTPS) ---
+const httpServer = http.createServer((req, res) => {
+    const host = req.headers.host;
+    console.log(`[HTTP] Redirigiendo ${host} a HTTPS`);
+    res.writeHead(301, { "Location": `https://${host}${req.url}` });
+    res.end();
 });
 
-httpServer.listen(HTTP_PORT, () => console.log(`🌍 Servidor Web RAW en ${HTTP_PORT}`));
+httpServer.listen(HTTP_PORT, () => console.log(`🌍 Redirección HTTP -> HTTPS lista en puerto ${HTTP_PORT}`));
