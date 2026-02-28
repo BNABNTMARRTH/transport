@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reverse Port | Abismo</title>
+    <meta name="description"
+        content="Expón tus puertos locales al internet de forma segura con ReversePort. Alternativa gratuita y potente a ngrok.">
+
+    <!-- Tipografía Premium -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Inter+Tight:wght@800&display=swap"
+        rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dark">
+    <!-- Fondo Animado (Mesh Gradient) -->
+    <div class="mesh-gradient"></div>
+
+    <nav class="glass">
+        <div class="container nav-content">
+            <div class="logo">
+                <img src="assets/logo.svg" alt="Reverse Port Logo" class="logo-icon">
+                <span class="logo-text">Reverse Port</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Funciones</a>
+                <a href="#docs">Documentación</a>
+                <a href="https://github.com/BNABNTMARRTH/transport" target="_blank" class="btn-github">
+                    <i data-lucide="github"></i> GitHub
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero container">
+        <!-- Terminal Visual (Moved to the Top) -->
+        <div class="hero-visual reveal initial-view">
+            <div class="terminal-window glass">
+                <div class="terminal-header">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <div class="terminal-body" id="terminal-body" onclick="focusTerminal()">
+                    <div class="terminal-header-art">
+                        <pre class="ascii-art">
++-----------------------------------------------------------+
+|                                                           |
+|  ██████╗ ███████╗██╗   ██╗███████╗██████╗ ███████╗███████╗|
+|  ██╔══██╗██╔════╝██║   ██║██╔════╝██╔══██╗██╔════╝██╔════╝|
+|  ██████╔╝█████╗  ██║   ██║█████╗  ██████╔╝███████╗█████╗  |
+|  ██╔══██╗██╔══╝  ╚██╗ ██╔╝██╔══╝  ██╔══██╗╚════██║██╔══╝  |
+|  ██║  ██║███████╗ ╚████╔╝ ███████╗██║  ██║███████║███████╗|
+|  ╚═╝  ╚═╝╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝|
+|                                                           |
+|            ██████╗  ██████╗ ██████╗ ████████╗             |
+|            ██╔══██╗██╔═══██╗██╔══██╗╚══██╔══╝             |
+|            ██████╔╝██║   ██║██████╔╝   ██║                |
+|            ██╔═══╝ ██║   ██║██╔══██╗   ██║                |
+|            ██║     ╚██████╔╝██║  ██║   ██║                |
+|            ╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝                |
+|                                                           |
+|                        A B I S M O                        |
+|                          v0.1.0                           |
++-----------------------------------------------------------+
+                        </pre>
+                        <div id="walking-octopus" class="walking-octopus">
+                            <img src="assets/pulpo_terminal.svg" alt="Octopus">
+                        </div>
+                    </div>
+                    <div id="terminal-history">
+                        <p class="success">--- Bienvenido al Abismo de reversePort ---</p>
+                        <p>Escribe 'help' para ver los comandos disponibles.</p>
+                    </div>
+                    <div class="terminal-input-line">
+                        <span class="prompt">$</span>
+                        <input type="text" id="terminal-input" spellcheck="false" autocomplete="off" autofocus>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="entry-title reveal">
+            <h2 class="main-title text-abyssal text-bloom" data-text="Potencia Abismal.">Potencia Abismal.</h2>
+        </div>
+
+        <!-- Hero Content (Follows Golden Scale on Scroll) -->
+        <div class="hero-content-scroll reveal section-abyssal">
+            <div class="hero-badge">V0.1.0</div>
+            <h1 class="text-abyssal">Tunel con <span class="text-gradient">tentáculos</span></h1>
+            <h2 class="hero-desc">Comparte tu localhost al mundo con la elegancia del abismo.</h2>
+
+            <div class="hero-cta">
+                <button class="btn-primary" onclick="scrollToDocs()">Empieza ahora</button>
+                <div class="command-box">
+                    <code>npx reverseport --subdominio tu-nombre</code>
+                    <button class="btn-copy" onclick="copyCommand()"><i data-lucide="copy"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="features" class="container section-abyssal">
+        <div class="section-header">
+            <h2 class="reveal text-abyssal text-bloom" data-text="Abismo Tecnológico.">Abismo Tecnológico.</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card glass reveal step-card">
+                <div class="feature-icon"><i data-lucide="shield-check"></i></div>
+                <h3>HTTPS Blindado</h3>
+                <p>Certificados Wildcard incluidos por defecto. Tus túneles viajan protegidos por el vacío.</p>
+            </div>
+            <div class="feature-card glass reveal step-card">
+                <div class="feature-icon"><i data-lucide="zap"></i></div>
+                <h3>Latencia Mínima</h3>
+                <p>Transferencia de datos ultrarrápida optimizada con Node.js puro para evitar fricción en el abismo.
+                </p>
+            </div>
+            <div class="feature-card glass reveal step-card">
+                <div class="feature-icon"><i data-lucide="cpu"></i></div>
+                <h3>Multiplexado Inteligente</h3>
+                <p>Múltiples conexiones concurrentes sobre un solo canal. Robusto como el coral abisal.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- New Section: How it Works (Golden Ratio Spacing) -->
+    <section id="how-it-works" class="container section-abyssal">
+        <div class="section-header">
+            <h2 class="reveal text-abyssal">Salta a la Superficie.</h2>
+        </div>
+        <div class="steps-flow reveal">
+            <div class="step-card glass">
+                <span class="step-num">01</span>
+                <h3>Instala</h3>
+                <p><code>npm install -g reverseport</code></p>
+            </div>
+            <div class="step-card glass">
+                <span class="step-num">02</span>
+                <h3>Conecta</h3>
+                <p>Ejecuta el comando y elige tu dominio.</p>
+            </div>
+            <div class="step-card glass">
+                <span class="step-num">03</span>
+                <h3>Expon</h3>
+                <p>Tu localhost es ahora parte del internet global.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="container">
+        <div class="footer-content">
+            <i class="fi fi-ss-octopus"></i>
+            <p>© 2026 Reverse Port -- Abismo</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
