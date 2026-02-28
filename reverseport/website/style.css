@@ -658,22 +658,23 @@ footer {
     transform: scale(1.1);
 }
 
-/* Speech Bubble */
+/* Speech Bubble (Panoramic & Translucent) */
 .speech-bubble {
     position: absolute;
-    bottom: 160%;
+    bottom: 140%;
     left: 50%;
     transform: translateX(-50%) translateY(10px);
-    width: 320px;
-    background: rgba(15, 15, 20, 0.98);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(168, 85, 247, 0.2);
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    width: min(90vw, 800px);
+    background: rgba(10, 10, 15, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 20px;
+    padding: 1.2rem 2.5rem;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), 0 0 20px rgba(168, 85, 247, 0.1);
     opacity: 0;
     visibility: hidden;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 1000;
 }
 
@@ -691,14 +692,18 @@ footer {
     transform: translateX(-50%);
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-top: 10px solid rgba(15, 15, 20, 0.98);
+    border-top: 10px solid rgba(10, 10, 15, 0.75);
 }
 
 .bubble-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    justify-content: center;
+    /* Center the title */
+    position: relative;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.1);
 }
 
 .bubble-close {
@@ -709,23 +714,32 @@ footer {
     padding: 4px;
     display: flex;
     align-items: center;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    position: absolute;
+    left: 0;
+    /* Mac style: Close on the left */
 }
 
 .bubble-close:hover {
     color: var(--accent);
+    transform: rotate(90deg);
 }
 
 .bubble-content {
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.65);
     line-height: 1.6;
+    text-align: center;
+    max-width: 90%;
+    margin: 0 auto;
 }
 
 .bubble-title {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
 }
 
 .footer-brand i {
