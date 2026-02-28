@@ -1,0 +1,14 @@
+{
+    "name": "reverseport-client",
+    "version": "1.0.0",
+    "description": "The local agent for ReversePort",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "axios": "^1.5.0",
+        "chalk": "^4.1.2",
+        "commander": "^11.0.0"
+    }
+}

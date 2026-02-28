@@ -1,0 +1,24 @@
+# Task List: ReversePort - Local Port Sharing Service
+
+- [x] **Planning & Research**
+    - [x] Research reverse tunnel architectures (SSH, WebSockets, custom TCP)
+    - [x] Define the technology stack (Node.js)
+    - [x] Create `implementation_plan.md`
+- [x] **Core Server Implementation**
+    - [x] Set up `package.json` and basic structure
+    - [x] Implement TCP server for client connections
+    - [x] Implement HTTP proxy for public requests
+    - [/] Multiplexing logic for subdomains (`*.reverseport.net`)
+- [x] **Client implementation**
+    - [x] Set up `package.json` and basic structure
+    - [x] Implement connection to server
+    - [x] Implement local port forwarding
+- [/] **Security & Advanced Features**
+    - [ ] Implement SSL/TLS (HTTPS)
+    - [ ] API Key authentication
+    - [/] Multiplexing logic for concurrent requests
+- [x] **Deployment to VPS (Hostinger - IP: 82.180.160.218)**
+    - [x] Update DNS for `reverseport.net`
+    - [x] Install Node.js and PM2 on VPS
+    - [x] Restore SSH Access (Firewall Fixed)
+    - [x] Deploy `tunnel-server` and start with PM2
