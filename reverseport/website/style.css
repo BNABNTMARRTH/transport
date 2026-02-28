@@ -159,6 +159,34 @@ nav.glass {
     line-height: 1.1;
     letter-spacing: -2px;
     margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.version-anchor {
+    display: none;
+    /* Cleanup */
+}
+
+.hero-version {
+    position: absolute;
+    top: 5px;
+    /* Fine-tuned to float just above the 's' */
+    right: 3px;
+    font-size: 11px;
+    /* Small and precise as requested */
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+    background: rgba(124, 58, 237, 0.05);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    padding: 1px 4px;
+    border-radius: 3px;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+    -webkit-text-fill-color: var(--accent);
+    /* Override gradient parents */
+    text-transform: uppercase;
 }
 
 .hero-cta {
