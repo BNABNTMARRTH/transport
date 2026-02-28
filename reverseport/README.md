@@ -1,37 +1,37 @@
 # ReversePort 🚀
 
-ReversePort is a lightweight, multi-user reverse tunneling service built with Node.js. It allows you to expose local ports (like `localhost:3000`) to the public internet through custom subdomains (e.g., `user.reverseport.net`).
+ReversePort es un servicio ligero de túneles reversos multi-usuario construido con Node.js. Te permite exponer puertos locales (como `localhost:3000`) al internet público a través de subdominios personalizados (ej. `tu-nombre.reverseport.net`).
 
-## Features
-- **Multiplexed Design**: Uses separate Control and Data channels to handle concurrent requests reliably.
-- **Subdomain Routing**: Dynamically routes traffic based on the incoming Host header.
-- **Raw TCP Proxying**: Bypasses complex HTTP parsing for maximum performance and stability.
-- **Multi-user Support**: Connect multiple clients simultaneously with unique subdomains.
+## Características
+- **Diseño Multiplexado**: Utiliza canales de Control y Datos separados para manejar múltiples peticiones simultáneas de forma confiable.
+- **Enrutamiento por Subdominios**: Direcciona el tráfico dinámicamente basado en la cabecera Host de la petición.
+- **Proxy TCP Crudo (Raw)**: Salta el procesamiento complejo de HTTP para máxima velocidad y estabilidad.
+- **Soporte Multi-usuario**: Conecta múltiples clientes al mismo tiempo con subdominios únicos.
 
-## Architecture
-- **Server (The Hub)**: Runs on a VPS with a public IP. Listens for tunnel connections on port 8080 and public HTTP traffic on port 80.
-- **Client (The Agent)**: Runs on your local machine. Connects to the Hub and forwards traffic to your local port.
+## Arquitectura
+- **Servidor (El Hub)**: Corre en un VPS con IP pública. Escucha conexiones de túnel en el puerto 8080 y tráfico web público en el puerto 80.
+- **Cliente (El Agente)**: Corre en tu máquina local. Se conecta al Hub y redirige el tráfico a tu puerto local.
 
-## Setup
+## Configuración
 
-### Server
-1. Point your domain's A records (including a wildcard `*`) to your VPS IP.
-2. Install Node.js and PM2.
-3. Run `npm install` in the `server` directory.
-4. Start with `pm2 start index.js --name "reverseport-server"`.
+### Servidor
+1. Apunta los registros A de tu dominio (incluyendo un wildcard `*`) a la IP de tu VPS.
+2. Instala Node.js y PM2.
+3. Ejecuta `npm install` en el directorio `server`.
+4. Inicia con `pm2 start index.js --name "reverseport-server"`.
 
-### Client
-1. Run `npm install` in the `client` directory.
-2. Start the tunnel:
+### Cliente
+1. Ejecuta `npm install` en el directorio `client`.
+2. Inicia el túnel:
    ```bash
-   node index.js --subdomain yourname --localPort 3000
+   node index.js --subdomain tu-nombre --localPort 3000
    ```
-3. Access your app at `http://yourname.yourdomain.com`.
+3. Accede a tu app en `http://tu-nombre.tudominio.com`.
 
-## To-Do
-- [ ] SSL/TLS (HTTPS) support with Certbot.
-- [ ] API Key authentication for security.
-- [ ] Web dashboard for monitoring tunnels.
+## Pendientes (To-Do)
+- [ ] Soporte SSL/TLS (HTTPS) con Certbot.
+- [ ] Autenticación por API Key para seguridad.
+- [ ] Dashboard web para monitorear los túneles activos.
 
 ---
-Built with ❤️ by Antigravity (Advanced Agentic Coding) for benavente.
+Construido con ❤️ por Antigravity (Advanced Agentic Coding) para benavente.
