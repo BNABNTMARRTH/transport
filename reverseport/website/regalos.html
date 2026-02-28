@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reverse Port | Regalame un Maki</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Tipografía Premium -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Inter+Tight:wght@800&display=swap"
+        rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Flaticon (Octopus) -->
+    <link rel='stylesheet'
+        href='https://cdn-uicons.flaticon.com/2.1.0/uicons-solid-straight/css/uicons-solid-straight.css'>
+</head>
+
+<body class="dark">
+    <nav class="glass">
+        <div class="container nav-content">
+            <div class="logo">
+                <img src="assets/logo.svg" alt="Reverse Port Logo" class="logo-icon">
+                <span class="logo-text">Reverse Port</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Inicio</a>
+                <a href="#doc">Documentación</a>
+                <a href="https://github.com" class="btn-github"><i data-lucide="github"></i> GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container donation-page">
+        <section class="hero-simple reveal">
+            <h1 class="text-abyssal text-bloom">Invitame unos Makis.</h1>
+            <p>Si este servicio te ha sido de utilidad, considera invitarme unos makis para mantener los tentáculos en
+                acción.</p>
+        </section>
+
+        <div class="clams-grid reveal">
+            <a href="#" class="clam-card glass maki-item">
+                <div class="maki-icon-container">
+                    <img src="assets/sushi_maki-2.png" alt="Maki Compae" class="maki-img">
+                </div>
+                <div class="clam-info">
+                    <h3>Maki Compae</h3>
+                    <p class="price">$2</p>
+                    <span class="maki-desc">Un aperitivo para el pulpo.</span>
+                </div>
+            </a>
+            <a href="#" class="clam-card glass featured maki-item">
+                <div class="maki-icon-container">
+                    <img src="assets/sombrero-pirata-5.png" alt="Maki Harr" class="maki-img">
+                </div>
+                <div class="clam-info">
+                    <h3>Maki Harr</h3>
+                    <p class="price">$5</p>
+                    <span class="maki-desc">¡Harr! El favorito del pulpo.</span>
+                </div>
+            </a>
+            <a href="#" class="clam-card glass maki-item">
+                <div class="maki-icon-container">
+                    <img src="assets/cofre-del-tesoro-10.png" alt="Maki Ahoy" class="maki-img">
+                </div>
+                <div class="clam-info">
+                    <h3>Maki Ahoy</h3>
+                    <p class="price">$10</p>
+                    <span class="maki-desc">Un cofre lleno de gratitud.</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="back-home reveal">
+            <a href="index.html" class="btn-back"><i data-lucide="arrow-left"></i> Regresar</a>
+        </div>
+    </main>
+
+    <footer class="container">
+        <div class="footer-content reveal">
+            <div class="footer-brand">
+                <p>© 2026 Reverse Port -- Abismo</p>
+            </div>
+            <div class="footer-logo" onclick="toggleTerms()">
+                <img src="assets/logo.svg" alt="Reverse Port Logo" class="logo-icon">
+                <div class="speech-bubble" id="termsBubble">
+                    <div class="bubble-header">
+                        <button class="bubble-close" onclick="event.stopPropagation(); toggleTerms()">
+                            <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                        </button>
+                        <span class="bubble-title">Términos del Servicio</span>
+                    </div>
+                    <div class="bubble-content">
+                        <p>El uso de esta plataforma es bajo responsabilidad exclusiva del usuario. Queda prohibido el
+                            uso del servicio para actividades ilícitas, malware, propagación de virus, spam o cualquier
+                            actividad que viole los términos del servicio.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-legal">
+                <span class="terms-trigger" onclick="toggleTerms()">Términos del Servicio</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

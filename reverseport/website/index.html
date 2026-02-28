@@ -36,11 +36,9 @@
                 <span class="logo-text">Reverse Port</span>
             </div>
             <div class="nav-links">
-                <a href="#features">Funciones</a>
-                <a href="#docs">Documentación</a>
-                <a href="https://github.com/BNABNTMARRTH/transport" target="_blank" class="btn-github">
-                    <i data-lucide="github"></i> GitHub
-                </a>
+                <a href="#doc">Documentación</a>
+                <a href="regalos.html" class="nav-maki-text">Invitar un Maki</a>
+                <a href="https://github.com" class="btn-github"><i data-lucide="github"></i> GitHub</a>
             </div>
         </div>
     </nav>
@@ -140,7 +138,7 @@
     <!-- New Section: How it Works (Golden Ratio Spacing) -->
     <section id="how-it-works" class="container section-abyssal">
         <div class="section-header">
-            <h2 class="reveal text-abyssal">Salta a la Superficie.</h2>
+            <h2 class="reveal text-abyssal">Emerge a la Superficie.</h2>
         </div>
         <div class="steps-flow reveal">
             <div class="step-card glass">
@@ -161,10 +159,31 @@
         </div>
     </section>
 
+
     <footer class="container">
-        <div class="footer-content">
-            <i class="fi fi-ss-octopus"></i>
-            <p>© 2026 Reverse Port -- Abismo</p>
+        <div class="footer-content reveal">
+            <div class="footer-brand">
+                <p>© 2026 Reverse Port -- Abismo</p>
+            </div>
+            <div class="footer-logo" onclick="toggleTerms()">
+                <img src="assets/logo.svg" alt="Reverse Port Logo" class="logo-icon">
+                <div class="speech-bubble" id="termsBubble">
+                    <div class="bubble-header">
+                        <button class="bubble-close" onclick="event.stopPropagation(); toggleTerms()">
+                            <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                        </button>
+                        <span class="bubble-title">Términos del Servicio</span>
+                    </div>
+                    <div class="bubble-content">
+                        <p>El uso de esta plataforma es bajo responsabilidad exclusiva del usuario. Queda prohibido el
+                            uso del servicio para actividades ilícitas, malware, propagación de virus, spam o cualquier
+                            actividad que viole los términos del servicio.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-legal">
+                <span class="terms-trigger" onclick="toggleTerms()">Términos del Servicio</span>
+            </div>
         </div>
     </footer>
 

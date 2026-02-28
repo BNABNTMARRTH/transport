@@ -19,6 +19,22 @@ function handleScroll() {
 window.addEventListener("scroll", handleScroll);
 window.addEventListener("load", handleScroll); // Trigger on load for elements above fold
 
+// Navigation Scroll Reveal
+window.addEventListener('scroll', () => {
+    const nav = document.querySelector('nav');
+    if (window.scrollY > 50) {
+        nav.classList.add('scrolled');
+    } else {
+        nav.classList.remove('scrolled');
+    }
+});
+
+// Terms Bubble Toggle
+function toggleTerms() {
+    const bubble = document.getElementById('termsBubble');
+    bubble.classList.toggle('active');
+}
+
 // --- COPY COMMAND TO CLIPBOARD ---
 function copyCommand() {
     const command = "npx reverseport --subdomain hola";
