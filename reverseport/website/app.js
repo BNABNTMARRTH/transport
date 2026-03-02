@@ -1,5 +1,6 @@
 // Initialize Lucide Icons
 lucide.createIcons();
+console.log("Abismo Terminal V23 Active");
 
 // --- REVEAL ON SCROLL ---
 const reveals = document.querySelectorAll(".reveal");

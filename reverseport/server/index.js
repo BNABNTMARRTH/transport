@@ -25,6 +25,14 @@ try {
 const controlConnections = new Map(); // subdomain -> controlSocket
 const pendingRequests = new Map();   // requestId -> { reqSocket, head }
 
+// --- SUBDOMINIOS RESERVADOS (Prevención de Phishing y Protección de Marca) ---
+const reservedSubdomains = new Set([
+    'www', 'api', 'admin', 'reverseport', 'status', 'blog', 'dev', 'test',
+    'google', 'apple', 'microsoft', 'nvidia', 'facebook', 'instagram', 'whatsapp',
+    'paypal', 'bank', 'banco', 'visa', 'mastercard', 'amazon', 'netflix',
+    'login', 'signin', 'secure', 'localhost', 'mail', 'support', 'soporte'
+]);
+
 // --- TUNNEL HUB (Multiplexación Control/Data) ---
 const tunnelServer = net.createServer((socket) => {
     socket.once('data', (data) => {
@@ -37,6 +45,15 @@ const tunnelServer = net.createServer((socket) => {
             // 1. Canal de Control (Persistente)
             if (msg.type === 'control') {
                 const { subdomain } = msg;
+
+                // Validación de Subdominio Reservado
+                if (reservedSubdomains.has(subdomain.toLowerCase())) {
+                    console.log(`[Seguridad] Bloqueado intento de usar subdominio reservado: ${subdomain}`);
+                    socket.write(JSON.stringify({ type: 'error', message: 'Subdominio reservado por políticas de seguridad.' }));
+                    socket.destroy();
+                    return;
+                }
+
                 console.log(`[Control] Cliente conectado: ${subdomain}`);
                 controlConnections.set(subdomain, socket);
 
