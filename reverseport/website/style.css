@@ -542,6 +542,12 @@ footer {
 }
 
 /* --- ANIMATIONS --- */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .reveal.active {
     opacity: 1;
     transform: translateY(0);
@@ -603,8 +609,8 @@ footer {
 }
 
 .section-abyssal {
-    margin-top: var(--s4);
-    margin-bottom: var(--s4);
+    margin-top: var(--s5);
+    margin-bottom: var(--s5);
 }
 
 .step-card {

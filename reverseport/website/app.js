@@ -54,8 +54,8 @@ function copyCommand() {
 
 // --- SCROLL TO DOCS ---
 function scrollToDocs() {
-    const features = document.getElementById("features");
-    features.scrollIntoView({ behavior: 'smooth' });
+    const section = document.getElementById("advantages");
+    section.scrollIntoView({ behavior: 'smooth' });
 }
 
 // --- INTERACTIVE TERMINAL ---
