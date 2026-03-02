@@ -155,6 +155,16 @@ function handleRequest(req, res) {
         return;
     }
 
+    // Ruta de seguridad profesional
+    if (req.url === '/security' && (subdomain === 'reverseport' || host === 'reverseport.net')) {
+        const securityPath = path.join(websitePath, 'security.html');
+        fs.readFile(securityPath, (err, content) => {
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end(content);
+        });
+        return;
+    }
+
     // Si es el dominio principal (sin subdominio), servimos la landing
     if (subdomain === 'reverseport' || host === 'reverseport.net') {
         let filePath = path.join(websitePath, req.url === '/' ? 'index.html' : req.url);
