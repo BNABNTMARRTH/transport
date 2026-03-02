@@ -20,13 +20,16 @@ ReversePort es un servicio ligero de túneles reversos multi-usuario construido 
 3. Ejecuta `npm install` en el directorio `server`.
 4. Inicia con `pm2 start index.js --name "reverseport-server"`.
 
-### Cliente
-1. Ejecuta `npm install` en el directorio `client`.
-2. Inicia el túnel:
+### Cliente (El Agente Abisal)
+1. Ejecución instantánea (Recomendado):
    ```bash
-   node index.js --subdomain tu-nombre --localPort 3000
+   npx rport-go
    ```
-3. Accede a tu app en `http://tu-nombre.tudominio.com`.
+2. O instalación global definitiva:
+   ```bash
+   npm install -g rport-go
+   reverseport
+   ```
 
 ## Pendientes (To-Do)
 - [ ] Soporte SSL/TLS (HTTPS) con Certbot.
