@@ -130,10 +130,30 @@ function serveStaticFile(res, filePath) {
     });
 }
 
+// --- SERVIR INSTALADOR CLI ---
+function serveInstaller(res) {
+    const installerPath = path.join(websitePath, 'install.sh');
+    fs.readFile(installerPath, (err, content) => {
+        if (err) {
+            res.writeHead(404);
+            res.end('Installer not found');
+            return;
+        }
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end(content);
+    });
+}
+
 // --- LÓGICA DE PROXY / LANDING (Compartida) ---
 function handleRequest(req, res) {
     const host = req.headers.host || '';
     const subdomain = host.split('.')[0];
+
+    // Ruta mágica para instalación: reverseport.net/install
+    if (req.url === '/install' && (subdomain === 'reverseport' || host === 'reverseport.net')) {
+        serveInstaller(res);
+        return;
+    }
 
     // Si es el dominio principal (sin subdominio), servimos la landing
     if (subdomain === 'reverseport' || host === 'reverseport.net') {
