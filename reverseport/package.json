@@ -1,0 +1,26 @@
+{
+  "name": "rport-go",
+  "version": "2.0.0",
+  "description": "Túnel inverso ultraligero y de alto rendimiento con arquitectura GoF, inspector de tráfico, QR móvil y soporte TCP puro.",
+  "main": "client/index.js",
+  "bin": {
+    "rport-go": "client/index.js",
+    "reverseport": "client/index.js"
+  },
+  "scripts": {
+    "test": "node tests/protocol.test.js && node tests/registry.test.js && node tests/qr.test.js && node tests/inspector.test.js && node tests/auth.test.js && node tests/tcp.test.js && node tests/e2e.test.js",
+    "start": "node client/index.js",
+    "server": "node server/index.js"
+  },
+  "keywords": [
+    "reverse-tunnel",
+    "tunnel",
+    "localtunnel",
+    "ngrok-alternative",
+    "gof-patterns",
+    "tcp-tunnel",
+    "traffic-inspector"
+  ],
+  "author": "BNABNT",
+  "license": "MIT"
+}

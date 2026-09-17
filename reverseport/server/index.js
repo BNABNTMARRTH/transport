@@ -3,29 +3,24 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 
-const HTTP_PORT = 80;
-const HTTPS_PORT = 443;
-const TUNNEL_PORT = 8080;
+const { ProtocolAdapter } = require('../shared/protocol');
+const { registry } = require('./registry');
+const { StaticSiteFacade } = require('./staticFacade');
+const { createHttpPipeline } = require('./pipeline');
+const { authManager } = require('./auth');
+const { TcpTunnelHub } = require('./tcpHub');
 
-// --- CARGAR CERTIFICADOS SSL ---
-const certPath = '/etc/letsencrypt/live/reverseport.net';
-let sslOptions = null;
-try {
-    sslOptions = {
-        key: fs.readFileSync(`${certPath}/privkey.pem`),
-        cert: fs.readFileSync(`${certPath}/fullchain.pem`)
-    };
-    console.log('✅ Certificados SSL cargados satisfactoriamente.');
-} catch (e) {
-    console.error('❌ Error cargando certificados SSL (HTTPS no funcionará):', e.message);
-}
+// --- CONFIGURACIÓN ---
+const HTTP_PORT = parseInt(process.env.HTTP_PORT) || 80;
+const HTTPS_PORT = parseInt(process.env.HTTPS_PORT) || 443;
+const TUNNEL_PORT = parseInt(process.env.TUNNEL_PORT) || 8080;
+const ROOT_DOMAIN = process.env.ROOT_DOMAIN || 'reverseport.net';
 
-const controlConnections = new Map(); // subdomain -> controlSocket
-const pendingRequests = new Map();   // requestId -> { reqSocket, head }
+// --- HUB TCP PURO (Bases de datos, SSH) ---
+const tcpHub = new TcpTunnelHub(registry);
 
-// --- SUBDOMINIOS RESERVADOS (Prevención de Phishing y Protección de Marca) ---
+// --- SUBDOMINIOS RESERVADOS ---
 const reservedSubdomains = new Set([
     'www', 'api', 'admin', 'reverseport', 'status', 'blog', 'dev', 'test',
     'google', 'apple', 'microsoft', 'nvidia', 'facebook', 'instagram', 'whatsapp',
@@ -33,231 +28,231 @@ const reservedSubdomains = new Set([
     'login', 'signin', 'secure', 'localhost', 'mail', 'support', 'soporte'
 ]);
 
-// --- TUNNEL HUB (Multiplexación Control/Data) ---
+// --- FACADE Y PIPELINE (GoF Structural / Behavioral) ---
+const websitePath = path.join(__dirname, '..', 'website');
+const staticFacade = new StaticSiteFacade(websitePath);
+const pipeline = createHttpPipeline(staticFacade, registry, reservedSubdomains, ROOT_DOMAIN);
+
+// --- CARGAR CERTIFICADOS SSL (Tolerante a entornos sin SSL) ---
+const certPath = process.env.CERT_PATH || '/etc/letsencrypt/live/reverseport.net';
+let sslOptions = null;
+try {
+    if (fs.existsSync(`${certPath}/privkey.pem`) && fs.existsSync(`${certPath}/fullchain.pem`)) {
+        sslOptions = {
+            key: fs.readFileSync(`${certPath}/privkey.pem`),
+            cert: fs.readFileSync(`${certPath}/fullchain.pem`)
+        };
+        console.log('✅ Certificados SSL cargados satisfactoriamente.');
+    } else {
+        console.log('ℹ️  No se encontraron certificados SSL en', certPath, '(Modo HTTP / Test activo)');
+    }
+} catch (e) {
+    console.error('❌ Error cargando certificados SSL:', e.message);
+}
+
+// --- TUNNEL HUB (Multiplexación con ProtocolAdapter - GoF Structural) ---
 const tunnelServer = net.createServer((socket) => {
-    socket.once('data', (data) => {
+    const adapter = ProtocolAdapter.wrap(socket);
+
+    adapter.on('message', (msg) => {
         try {
-            const raw = data.toString().trim();
-            if (!raw) return socket.destroy();
-
-            const msg = JSON.parse(raw);
-
-            // 1. Canal de Control (Persistente)
+            // 1. Canal de Control HTTP / Web (Persistente)
             if (msg.type === 'control') {
-                const { subdomain } = msg;
+                const { subdomain, apiKey } = msg;
 
-                // Validación de Subdominio Reservado
-                if (reservedSubdomains.has(subdomain.toLowerCase())) {
-                    console.log(`[Seguridad] Bloqueado intento de usar subdominio reservado: ${subdomain}`);
-                    socket.write(JSON.stringify({ type: 'error', message: 'Subdominio reservado por políticas de seguridad.' }));
+                if (!subdomain) {
+                    adapter.send({ type: 'error', message: 'Subdominio inválido' });
                     socket.destroy();
                     return;
                 }
 
-                console.log(`[Control] Cliente conectado: ${subdomain}`);
-                controlConnections.set(subdomain, socket);
+                if (reservedSubdomains.has(subdomain.toLowerCase())) {
+                    adapter.send({ type: 'error', message: 'Subdominio reservado por políticas de seguridad.' });
+                    socket.destroy();
+                    return;
+                }
+
+                // Validación de reserva de subdominio / API Key
+                const authCheck = authManager.validateTunnelAccess(subdomain, apiKey);
+                if (!authCheck.allowed) {
+                    adapter.send({ type: 'error', message: authCheck.reason });
+                    socket.destroy();
+                    return;
+                }
+
+                console.log(`[Control] Cliente conectado: ${subdomain} (VIP: ${authCheck.vip})`);
+                registry.registerControl(subdomain, socket);
 
                 socket.on('close', () => {
                     console.log(`[Control] Cliente desconectado: ${subdomain}`);
-                    if (controlConnections.get(subdomain) === socket) {
-                        controlConnections.delete(subdomain);
-                    }
+                    registry.removeControl(subdomain, socket);
+                    tcpHub.releaseClientTunnels(socket);
                 });
-                socket.on('error', () => { socket.destroy(); });
             }
 
-            // 2. Canal de Datos (Efímero, una por request)
+            // 1.b Canal de Control TCP Puro (Postgres, MySQL, SSH)
+            else if (msg.type === 'tcp_control') {
+                const { localPort, preferredPort, apiKey } = msg;
+                const authCheck = authManager.validateTunnelAccess('tcp-tunnel', apiKey);
+
+                tcpHub.createTcpTunnel(socket, localPort, preferredPort)
+                    .then((publicPort) => {
+                        console.log(`[TCP Hub] Túnel TCP activo para puerto local ${localPort} -> puerto público ${publicPort}`);
+                        adapter.send({
+                            type: 'tcp_ready',
+                            publicPort,
+                            publicHost: ROOT_DOMAIN,
+                            localPort
+                        });
+                    })
+                    .catch((err) => {
+                        adapter.send({ type: 'error', message: `Fallo al abrir túnel TCP: ${err.message}` });
+                        socket.destroy();
+                    });
+
+                socket.on('close', () => {
+                    tcpHub.releaseClientTunnels(socket);
+                });
+            }
+
+            // 2. Canal de Datos (Efímero, 1 por request)
             else if (msg.type === 'data') {
                 const { requestId } = msg;
-                const pending = pendingRequests.get(requestId);
+                const pending = registry.takePendingRequest(requestId);
 
                 if (pending) {
                     console.log(`[Data] Vinculando canal para request: ${requestId}`);
-                    pendingRequests.delete(requestId);
-
                     const { reqSocket, head } = pending;
 
-                    // RAW PIPING: Unimos el navegador (local) con el túnel (remoto)
+                    // Una vez identificado como socket de datos, destruimos el adapter
+                    // para permitir raw stream piping transparente de alta velocidad
+                    adapter.destroy();
+
                     reqSocket.pipe(socket).pipe(reqSocket);
 
-                    // Enviamos los headers que ya habíamos leído
                     if (head && head.length > 0) {
                         socket.write(head);
                     }
 
-                    // Despausamos para dejar fluir el resto del body
                     reqSocket.resume();
 
-                    reqSocket.on('error', () => socket.destroy());
-                    socket.on('error', () => reqSocket.destroy());
+                    reqSocket.on('error', () => { try { socket.destroy(); } catch (e) { } });
+                    socket.on('error', () => { try { reqSocket.destroy(); } catch (e) { } });
                 } else {
                     socket.destroy();
                 }
             }
-        } catch (e) {
+        } catch (err) {
+            console.error('[Tunnel Error]', err);
             socket.destroy();
         }
     });
 
+    adapter.on('error', () => { });
     socket.on('error', () => { });
 });
 
-tunnelServer.listen(TUNNEL_PORT, () => console.log(`🚀 Hub de Túneles en el puerto ${TUNNEL_PORT}`));
+tunnelServer.listen(TUNNEL_PORT, () => {
+    console.log(`🚀 Hub de Túneles escuchando en el puerto ${TUNNEL_PORT}`);
+});
 
-
-// --- LÓGICA DE SERVIDOR ESTÁTICO (Landing Page) ---
-const websitePath = path.join(__dirname, '..', 'website');
-
-function serveStaticFile(res, filePath) {
-    const ext = path.extname(filePath).toLowerCase();
-    const mimeTypes = {
-        '.html': 'text/html',
-        '.css': 'text/css',
-        '.js': 'text/javascript',
-        '.svg': 'image/svg+xml',
-        '.png': 'image/png',
-        '.jpg': 'image/jpeg'
-    };
-
-    fs.readFile(filePath, (err, content) => {
-        if (err) {
-            res.writeHead(404);
-            res.end('404 Not Found');
-            return;
-        }
-        res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
-        res.end(content);
-    });
+// Helper para parsear subdominio de un header Host
+function extractHostAndSubdomain(hostHeader) {
+    const host = (hostHeader || '').split(':')[0].toLowerCase();
+    const parts = host.split('.');
+    let subdomain = parts[0];
+    return { host, subdomain };
 }
 
-// --- SERVIR INSTALADOR CLI ---
-function serveInstaller(res) {
-    const installerPath = path.join(websitePath, 'install.sh');
-    fs.readFile(installerPath, (err, content) => {
-        if (err) {
-            res.writeHead(404);
-            res.end('Installer not found');
-            return;
-        }
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end(content);
-    });
+// Handler general para conexiones HTTP / HTTPS
+function processIncomingStream(reqSocket, headData) {
+    const raw = headData.toString();
+    const hostMatch = raw.match(/Host:\s*([^\s:]+)/i);
+
+    if (hostMatch) {
+        const { host, subdomain } = extractHostAndSubdomain(hostMatch[1]);
+        const context = { reqSocket, head: headData, host, subdomain };
+        pipeline.handle(context);
+    } else {
+        reqSocket.destroy();
+    }
 }
 
-// --- LÓGICA DE PROXY / LANDING (Compartida) ---
-function handleRequest(req, res) {
-    const host = req.headers.host || '';
-    const subdomain = host.split('.')[0];
-
-    // Ruta mágica para instalación: reverseport.net/install
-    if (req.url === '/install' && (subdomain === 'reverseport' || host === 'reverseport.net')) {
-        serveInstaller(res);
-        return;
-    }
-
-    // Ruta de seguridad profesional
-    if (req.url === '/security' && (subdomain === 'reverseport' || host === 'reverseport.net')) {
-        const securityPath = path.join(websitePath, 'security.html');
-        fs.readFile(securityPath, (err, content) => {
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.end(content);
-        });
-        return;
-    }
-
-    // Si es el dominio principal (sin subdominio), servimos la landing
-    if (subdomain === 'reverseport' || host === 'reverseport.net') {
-        let filePath = path.join(websitePath, req.url === '/' ? 'index.html' : req.url);
-        // Evitarnos salir del directorio website
-        if (!filePath.startsWith(websitePath)) {
-            res.writeHead(403);
-            res.end('Forbidden');
-            return;
-        }
-        serveStaticFile(res, filePath);
-        return;
-    }
-
-    // Si hay subdominio, manejamos la conexión para el túnel (esta lógica se hereda de la versión anterior)
-    // Pero como estamos dentro de un Servidor HTTP de Node, el socket ya está manejado.
-    // Usaremos el socket subyacente del request para el túnel transparente.
-}
-
-// --- SERVIDOR HTTPS (SSL Offloading / TLS Termination) ---
+// --- SERVIDOR HTTPS (Si hay certificados) ---
 if (sslOptions) {
     const httpsServer = https.createServer(sslOptions, (req, res) => {
-        const host = req.headers.host || '';
-        const subdomain = host.split('.')[0];
-
-        // Landing Page
-        if (subdomain === 'reverseport' || host === 'reverseport.net') {
-            handleRequest(req, res);
-            return;
-        }
+        const { host, subdomain } = extractHostAndSubdomain(req.headers.host);
+        const context = { req, res, host, subdomain };
+        pipeline.handle(context);
     });
 
-    // Para los subdominios (Túneles), usamos el socket bruto
     httpsServer.on('secureConnection', (cleartextSocket) => {
         cleartextSocket.once('data', (data) => {
             const raw = data.toString();
             const hostMatch = raw.match(/Host:\s*([^\s:]+)/i);
 
             if (hostMatch) {
-                const host = hostMatch[1];
-                const subdomain = host.split('.')[0];
+                const { host, subdomain } = extractHostAndSubdomain(hostMatch[1]);
+                const isRoot = (subdomain === 'reverseport' || host === ROOT_DOMAIN);
 
-                if (subdomain !== 'reverseport' && host !== 'reverseport.net') {
-                    // Lógica de Túnel (Raw)
-                    handleProxy(cleartextSocket, data);
+                if (!isRoot) {
+                    // Tráfico dirigido a un túnel
+                    processIncomingStream(cleartextSocket, data);
                     return;
                 }
             }
+            // Tráfico estándar para landing, dejamos fluir el evento data
+            cleartextSocket.unshift(data);
         });
     });
 
-    httpsServer.listen(HTTPS_PORT, () => console.log(`🔒 Servidor HTTPS (Landing + Tunnels) en ${HTTPS_PORT}`));
+    httpsServer.listen(HTTPS_PORT, () => console.log(`🔒 Servidor HTTPS listo en puerto ${HTTPS_PORT}`));
 }
 
-// Lógica de Proxy simplificada para heredar
-function handleProxy(reqSocket, data) {
-    reqSocket.pause();
-    const raw = data.toString();
-    const hostMatch = raw.match(/Host:\s*([^\s:]+)/i);
-
-    if (hostMatch) {
-        const host = hostMatch[1];
-        const subdomain = host.split('.')[0];
-        const controlSocket = controlConnections.get(subdomain);
-
-        if (controlSocket && !controlSocket.destroyed) {
-            const requestId = uuidv4();
-            pendingRequests.set(requestId, { reqSocket, head: data });
-            controlSocket.write(JSON.stringify({ type: 'create_connection', requestId }));
-            setTimeout(() => {
-                if (pendingRequests.has(requestId)) {
-                    pendingRequests.delete(requestId);
-                    if (reqSocket.writable) {
-                        reqSocket.write('HTTP/1.1 504 Gateway Timeout\r\n\r\n');
-                        reqSocket.destroy();
-                    }
-                }
-            }, 15000);
-        } else {
-            if (reqSocket.writable) {
-                reqSocket.write('HTTP/1.1 404 Not Found\r\n\r\nSubdominio no activo.');
-                reqSocket.destroy();
-            }
-        }
-    } else {
-        reqSocket.destroy();
-    }
-}
-
-// --- SERVIDOR HTTP (Redirección a HTTPS) ---
+// --- SERVIDOR HTTP (Redirección a HTTPS o fallback directo en desarrollo) ---
 const httpServer = http.createServer((req, res) => {
-    const host = req.headers.host;
-    res.writeHead(301, { "Location": `https://${host}${req.url}` });
-    res.end();
+    if (sslOptions) {
+        // En producción redirigir a HTTPS
+        const host = req.headers.host;
+        res.writeHead(301, { "Location": `https://${host}${req.url}` });
+        res.end();
+    } else {
+        // Modo desarrollo / sin SSL: Servir directamente con el pipeline
+        const { host, subdomain } = extractHostAndSubdomain(req.headers.host);
+        const context = { req, res, host, subdomain };
+        const handled = pipeline.handle(context);
+        if (!handled) {
+            res.writeHead(404);
+            res.end('Not Found');
+        }
+    }
 });
 
-httpServer.listen(HTTP_PORT, () => console.log(`🌍 Redirección HTTP -> HTTPS lista en puerto ${HTTP_PORT}`));
+// Soporte para conexiones TCP directas en HTTP (túneles en modo sin SSL)
+httpServer.on('connection', (reqSocket) => {
+    if (!sslOptions) {
+        reqSocket.once('data', (data) => {
+            const raw = data.toString();
+            const hostMatch = raw.match(/Host:\s*([^\s:]+)/i);
+            if (hostMatch) {
+                const { host, subdomain } = extractHostAndSubdomain(hostMatch[1]);
+                const isRoot = (subdomain === 'reverseport' || host === ROOT_DOMAIN || host.startsWith('localhost'));
+                if (!isRoot) {
+                    processIncomingStream(reqSocket, data);
+                    return;
+                }
+            }
+            reqSocket.unshift(data);
+        });
+    }
+});
+
+httpServer.listen(HTTP_PORT, () => console.log(`🌍 Servidor HTTP listo en puerto ${HTTP_PORT}`));
+
+module.exports = {
+    tunnelServer,
+    httpServer,
+    registry,
+    staticFacade,
+    pipeline
+};

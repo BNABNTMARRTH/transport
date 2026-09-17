@@ -1012,3 +1012,474 @@ footer {
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+/* ==========================================================================
+   CYBER-ABISAL UI/UX SYSTEM (GoF Design System 2.0)
+   ========================================================================== */
+
+/* --- CANVAS DE PARTÍCULAS BIOLUMINISCENTES --- */
+.abyssal-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.65;
+}
+
+/* --- MOUSE SPOTLIGHT GLOW & GLASS 2.0 --- */
+.glass-card {
+    position: relative;
+    background: rgba(15, 12, 28, 0.45);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+        600px circle at var(--mouse-x, -500px) var(--mouse-y, -500px),
+        rgba(124, 58, 237, 0.15),
+        rgba(6, 182, 212, 0.1) 40%,
+        transparent 80%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.glass-card:hover::before {
+    opacity: 1;
+}
+
+.glass-card:hover {
+    border-color: rgba(124, 58, 237, 0.35);
+    box-shadow: 0 12px 40px rgba(124, 58, 237, 0.15);
+}
+
+/* Tipografía de código JetBrains Mono */
+code, pre, .node-addr, #heroMainCommand, #caseCommand {
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* --- SIMULADOR DE TÚNEL EN VIVO (Hero) --- */
+.tunnel-simulator-card {
+    margin: 3rem 0 2rem 0;
+    padding: 1.8rem;
+    background: linear-gradient(135deg, rgba(20, 15, 38, 0.7) 0%, rgba(10, 8, 22, 0.75) 100%);
+}
+
+.simulator-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sim-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #a78bfa;
+    background: rgba(124, 58, 237, 0.15);
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 10px #10b981;
+    animation: pulseGlow 1.5s infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.sim-status-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.simulator-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.sim-node {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.2rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    transition: all 0.3s ease;
+}
+
+.sim-node:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(124, 58, 237, 0.4);
+}
+
+.node-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(124, 58, 237, 0.2);
+    color: #c4b5fd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(124, 58, 237, 0.4);
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.2);
+}
+
+.public-icon {
+    background: rgba(6, 182, 212, 0.2);
+    color: #67e8f9;
+    border-color: rgba(6, 182, 212, 0.4);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+}
+
+.node-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    overflow: hidden;
+}
+
+.node-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.8px;
+}
+
+.node-addr {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.text-cyan {
+    color: #38bdf8 !important;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+/* --- CONDUCTO Y PAQUETES DE LUZ --- */
+.sim-tube {
+    flex: 1.4;
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 60px;
+}
+
+.tube-track {
+    flex: 1;
+    height: 4px;
+    background: linear-gradient(90deg, rgba(124, 58, 237, 0.3), rgba(6, 182, 212, 0.3));
+    position: relative;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.light-packet {
+    position: absolute;
+    top: -3px;
+    width: 12px;
+    height: 10px;
+    border-radius: 50%;
+    background: #67e8f9;
+    box-shadow: 0 0 12px #38bdf8, 0 0 20px #7c3aed;
+    animation: flowPacket 2.2s infinite linear;
+}
+
+.p1 { animation-delay: 0s; }
+.p2 { animation-delay: 0.7s; }
+.p3 { animation-delay: 1.4s; }
+.p4 { animation-delay: 0.35s; }
+.p5 { animation-delay: 1.1s; }
+
+@keyframes flowPacket {
+    0% { left: -15px; opacity: 0; transform: scale(0.6); }
+    15% { opacity: 1; transform: scale(1.1); }
+    85% { opacity: 1; transform: scale(1.1); }
+    100% { left: 100%; opacity: 0; transform: scale(0.6); }
+}
+
+.hub-center {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 0.8rem;
+}
+
+.hub-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    padding: 6px;
+    background: rgba(18, 12, 38, 0.9);
+    border: 2px solid #7c3aed;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+    z-index: 2;
+    transition: transform 0.3s ease;
+}
+
+.hub-center:hover .hub-icon {
+    transform: scale(1.15) rotate(5deg);
+}
+
+.hub-pulse-ring {
+    position: absolute;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid rgba(124, 58, 237, 0.7);
+    animation: ringPulse 2s infinite ease-out;
+}
+
+@keyframes ringPulse {
+    0% { transform: scale(0.8); opacity: 0.9; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+.hub-tag {
+    position: absolute;
+    top: 50px;
+    white-space: nowrap;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #a78bfa;
+    letter-spacing: 0.5px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* --- SELECTOR DE CASOS DE USO (Tabs) --- */
+.use-cases-box {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(13, 10, 26, 0.55);
+}
+
+.cases-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.cases-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+
+.cases-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.case-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.case-tab:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.case-tab.active {
+    background: rgba(124, 58, 237, 0.2);
+    border-color: #7c3aed;
+    color: #c4b5fd;
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
+}
+
+.case-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 1.2rem;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.case-desc h4 {
+    font-size: 1rem;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.case-desc p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.case-command-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: rgba(15, 12, 28, 0.8);
+    padding: 0.4rem 0.6rem 0.4rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.case-command-wrap code {
+    color: #67e8f9;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.btn-case-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #7c3aed;
+    color: #ffffff;
+    border: none;
+    padding: 0.45rem 0.85rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-case-copy:hover {
+    background: #6d28d9;
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.5);
+}
+
+/* --- TOAST NOTIFICATIONS (Glassmorphism 2.0) --- */
+.toast-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    pointer-events: none;
+}
+
+.toast-message {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: rgba(18, 14, 38, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    color: #ffffff;
+    padding: 0.9rem 1.4rem;
+    border-radius: 12px;
+    border: 1px solid rgba(124, 58, 237, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(124, 58, 237, 0.25);
+    font-size: 0.85rem;
+    font-weight: 600;
+    animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.toast-message.toast-fadeout {
+    animation: toastSlideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+@keyframes toastSlideIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toastSlideOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(15px) scale(0.95); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 860px) {
+    .simulator-diagram {
+        flex-direction: column;
+        gap: 2rem;
+    }
+    .sim-tube {
+        width: 100%;
+        margin: 1.5rem 0;
+    }
+    .case-details {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .case-command-wrap {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

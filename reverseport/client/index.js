@@ -1,19 +1,17 @@
 #!/usr/bin/env node
-const net = require('net');
 const readline = require('readline');
-
-/**
- * reversePort CLI Agent
- * High-performance reverse tunnel client
- */
-
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-
-const remoteHost = '82.180.160.218';
-const remotePort = 8080;
+const { ClientConfigBuilder } = require('./config');
+const { TunnelStateMachine } = require('./stateMachine');
+const { renderToTerminal } = require('./qr');
+const {
+    CommandDispatcher,
+    StartDirectTunnelCommand,
+    StartTcpTunnelCommand,
+    StartInteractiveTunnelCommand,
+    OpenSecurityDocsCommand,
+    UninstallCommand,
+    ExitCommand
+} = require('./commands');
 
 const COLORS = {
     reset: '\x1b[0m',
@@ -46,187 +44,204 @@ ${COLORS.magenta}   +-----------------------------------------------------------
    |            ╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝                |
    |                                                           |
    |                      TERMINAL ABISAL                      |
-   |                          v1.0.0                           |
+   |                          v2.0.0                           |
    +-----------------------------------------------------------+${COLORS.reset}
 `;
 
-// Helper para crear enlaces clickables (OSC 8)
 function terminalLink(text, url) {
     return `\x1b]8;;${url}\x1b\\${text}\x1b]8;;\x1b\\`;
 }
 
-async function main() {
-    if (process.argv[2]) {
-        return startDirectTunnel();
-    }
-    showMenu();
-}
-
-function showMenu() {
-    console.clear();
-    console.log(ASCII_ART);
-    console.log(`${COLORS.bright}[ MENU DE GESTION ]${COLORS.reset}\n`);
-    console.log(`${COLORS.cyan}1.${COLORS.reset} Iniciar nuevo túnel`);
-    console.log(`${COLORS.cyan}2.${COLORS.reset} Ver documentación de seguridad`);
-    console.log(`${COLORS.cyan}3.${COLORS.reset} Desinstalar reversePort`);
-    console.log(`${COLORS.cyan}0.${COLORS.reset} Salir\n`);
-
-    rl.question(`${COLORS.bright}> Seleccione una opción: ${COLORS.reset}`, async (opt) => {
-        switch (opt) {
-            case '1':
-                await startInteractiveTunnel();
-                break;
-            case '2':
-                const url = 'https://reverseport.net/security';
-                console.log(`\nAbriendo: ${COLORS.blue}${terminalLink(url, url)}${COLORS.reset}`);
-                const { exec } = require('child_process');
-                const startCmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-                exec(`${startCmd} ${url}`);
-                setTimeout(showMenu, 3000);
-                break;
-            case '3':
-                confirmUninstallation();
-                break;
-            case '0':
-                process.exit(0);
-                break;
-            default:
-                showMenu();
-        }
-    });
-}
-
-async function startDirectTunnel() {
-    console.clear();
-    console.log(ASCII_ART);
-    let localPort = parseInt(process.argv[2]);
-    let subdomain = process.argv[3] || 'dev-' + Math.floor(Math.random() * 1000);
-
-    if (isNaN(localPort)) {
-        console.error(`${COLORS.red}[ERROR] El puerto debe ser un número.${COLORS.reset}`);
-        process.exit(1);
-    }
-
-    executeTunnel(subdomain, localPort);
-}
-
-async function startInteractiveTunnel() {
-    console.log(`\n${COLORS.bright}[ CONFIGURACION ]${COLORS.reset}\n`);
-    const subdomain = await askQuestion(`${COLORS.cyan}> Subdominio deseado: ${COLORS.reset}`);
-    const localPortStr = await askQuestion(`${COLORS.cyan}> Puerto local (defecto: 3000): ${COLORS.reset}`);
-    const localPort = parseInt(localPortStr) || 3000;
-
-    executeTunnel(subdomain || 'dev-' + Math.floor(Math.random() * 1000), localPort);
-}
-
-function confirmUninstallation() {
-    rl.question(`\n${COLORS.red}${COLORS.bright}¿Esta seguro de desinstalar reversePort? (s/n): ${COLORS.reset}`, (ans) => {
-        if (ans.toLowerCase() === 's') {
-            console.log(`\n${COLORS.yellow}[SISTEMA] Eliminando binarios globales...${COLORS.reset}`);
-            const { exec } = require('child_process');
-            exec('sudo npm uninstall -g rport-go', (err) => {
-                if (err) {
-                    console.error(`${COLORS.red}[ERROR] No se pudo desinstalar: ${err.message}${COLORS.reset}`);
-                } else {
-                    console.log(`${COLORS.green}[OK] reversePort ha sido eliminado.${COLORS.reset}`);
-                }
-                process.exit(0);
-            });
-        } else {
-            showMenu();
-        }
-    });
-}
-
-function askQuestion(query) {
-    return new Promise(resolve => rl.question(query, resolve));
-}
-
-function executeTunnel(subdomain, localPort) {
-    let controlSocket = null;
-    const activeDataSockets = new Set();
-
-    console.log(`\n${COLORS.dim}--- ESTABLECIENDO CONEXION ---${COLORS.reset}`);
-    console.log(`${COLORS.bright}Subdominio:${COLORS.reset} ${COLORS.green}${subdomain}${COLORS.reset}`);
-    console.log(`${COLORS.bright}Local Port:${COLORS.reset} ${COLORS.yellow}${localPort}${COLORS.reset}\n`);
-
-    const publicUrl = `https://${subdomain}.reverseport.net`;
-
-    function connectControl() {
-        controlSocket = net.connect(remotePort, remoteHost, () => {
-            console.log(`${COLORS.green}[OK] Canal de CONTROL establecido.${COLORS.reset}`);
-            console.log(`\n${COLORS.bright}ACCESO PUBLICO ACTIVO:${COLORS.reset}`);
-            // Enlace clickable profesional
-            console.log(`${COLORS.blue}${COLORS.underline}${terminalLink(publicUrl, publicUrl)}${COLORS.reset}`);
-            console.log(`\n${COLORS.dim}(Presiona 'q' para cerrar el túnel y volver al menú)${COLORS.reset}\n`);
-
-            controlSocket.write(JSON.stringify({ type: 'control', subdomain }));
+class ReversePortCLI {
+    constructor() {
+        this.rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
         });
 
-        controlSocket.on('data', (data) => {
-            try {
-                const raw = data.toString().trim();
-                const msg = JSON.parse(raw);
-                if (msg.type === 'create_connection') {
-                    createDataConnection(msg.requestId, localPort);
-                } else if (msg.type === 'error') {
-                    console.error(`${COLORS.red}[ERROR] ${msg.message}${COLORS.reset}`);
-                    closeAll();
-                }
-            } catch (e) { }
-        });
+        this.colors = COLORS;
 
-        controlSocket.on('close', () => {
-            if (controlSocket) {
-                console.log(`${COLORS.red}[DISCONNECTED] Canal de CONTROL cerrado.${COLORS.reset}`);
-                setTimeout(() => { if (controlSocket) connectControl(); }, 5000);
+        // Configuración extensible vía Builder Pattern
+        this.config = new ClientConfigBuilder()
+            .withRemoteHost(process.env.REVERSEPORT_HOST)
+            .withRemotePort(process.env.REVERSEPORT_PORT)
+            .withApiKey(process.env.REVERSEPORT_KEY)
+            .build();
+
+        this.dispatcher = new CommandDispatcher();
+        this.currentStateMachine = null;
+
+        this._registerCommands();
+    }
+
+    _registerCommands() {
+        this.dispatcher.register('1', new StartInteractiveTunnelCommand(this));
+        this.dispatcher.register('2', new OpenSecurityDocsCommand(this));
+        this.dispatcher.register('3', new UninstallCommand(this));
+        this.dispatcher.register('0', new ExitCommand());
+    }
+
+    prompt(query) {
+        return new Promise(resolve => this.rl.question(query, resolve));
+    }
+
+    showMenu() {
+        console.clear();
+        console.log(ASCII_ART);
+        console.log(`${COLORS.bright}[ MENU DE GESTION ]${COLORS.reset}\n`);
+        console.log(`${COLORS.cyan}1.${COLORS.reset} Iniciar nuevo túnel HTTP/Web`);
+        console.log(`${COLORS.cyan}2.${COLORS.reset} Ver documentación de seguridad`);
+        console.log(`${COLORS.cyan}3.${COLORS.reset} Desinstalar reversePort`);
+        console.log(`${COLORS.cyan}0.${COLORS.reset} Salir\n`);
+
+        this.rl.question(`${COLORS.bright}> Seleccione una opción: ${COLORS.reset}`, async (opt) => {
+            const handled = await this.dispatcher.dispatch(opt.trim());
+            if (!handled && opt.trim() !== '1') {
+                this.showMenu();
             }
         });
-
-        controlSocket.on('error', () => { });
     }
 
-    function createDataConnection(requestId, port) {
-        const remoteDataSocket = net.connect(remotePort, remoteHost, () => {
-            remoteDataSocket.write(JSON.stringify({ type: 'data', requestId }));
-            const localSocket = net.connect(port, '127.0.0.1', () => {
-                remoteDataSocket.pipe(localSocket).pipe(remoteDataSocket);
-            });
-            localSocket.on('error', () => remoteDataSocket.destroy());
-            localSocket.on('close', () => remoteDataSocket.destroy());
-        });
-        activeDataSockets.add(remoteDataSocket);
-        remoteDataSocket.on('close', () => activeDataSockets.delete(remoteDataSocket));
-        remoteDataSocket.on('error', () => { });
-    }
-
-    function closeAll() {
-        const sock = controlSocket;
-        controlSocket = null;
-        if (sock) sock.destroy();
-        activeDataSockets.forEach(s => s.destroy());
-        activeDataSockets.clear();
-        process.stdin.removeListener('keypress', keyHandler);
-        process.stdin.setRawMode(false);
-        process.stdin.pause();
-        showMenu();
-    }
-
-    // Escucha de teclado para cerrar el túnel
-    readline.emitKeypressEvents(process.stdin);
-    if (process.stdin.isTTY) process.stdin.setRawMode(true);
-
-    const keyHandler = (str, key) => {
-        if (key.name === 'q' || key.name === 'escape' || (key.ctrl && key.name === 'c')) {
-            console.log(`\n${COLORS.yellow}[SISTEMA] Cerrando túnel...${COLORS.reset}`);
-            closeAll();
+    launchTunnel(subdomain, localPort) {
+        console.clear();
+        console.log(ASCII_ART);
+        console.log(`${COLORS.dim}--- INICIALIZANDO TUNEL HTTP/WEB ---${COLORS.reset}`);
+        console.log(`${COLORS.bright}Subdominio:${COLORS.reset} ${COLORS.green}${subdomain}${COLORS.reset}`);
+        console.log(`${COLORS.bright}Puerto Local:${COLORS.reset} ${COLORS.yellow}${localPort}${COLORS.reset}`);
+        console.log(`${COLORS.bright}Servidor Hub:${COLORS.reset} ${COLORS.cyan}${this.config.remoteHost}:${this.config.remotePort}${COLORS.reset}`);
+        if (this.config.apiKey) {
+            console.log(`${COLORS.bright}API Key:${COLORS.reset} ${COLORS.magenta}activa (Modo VIP)${COLORS.reset}`);
         }
-    };
+        console.log('');
 
-    process.stdin.on('keypress', keyHandler);
-    connectControl();
+        this.currentStateMachine = new TunnelStateMachine(this.config, subdomain, localPort);
+
+        this.currentStateMachine.on('tunnel_ready', ({ publicUrl, inspectorUrl }) => {
+            console.log(`${COLORS.green}[OK] Canal de CONTROL establecido con éxito.${COLORS.reset}\n`);
+            console.log(`${COLORS.bright}🌐 URL PUBLICA SEGURA:${COLORS.reset}`);
+            console.log(`   ${COLORS.cyan}${COLORS.bright}${terminalLink(publicUrl, publicUrl)}${COLORS.reset}\n`);
+
+            if (inspectorUrl) {
+                console.log(`${COLORS.bright}🔍 INSPECTOR DE TRAFICO LOCAL (Web UI):${COLORS.reset}`);
+                console.log(`   ${COLORS.magenta}${terminalLink(inspectorUrl, inspectorUrl)}${COLORS.reset}\n`);
+            }
+
+            console.log(`${COLORS.bright}📱 ESCANEAR QR CON EL MOVIL:${COLORS.reset}`);
+            try {
+                const qrRender = renderToTerminal(publicUrl);
+                console.log(qrRender);
+            } catch (e) { }
+
+            console.log(`\n${COLORS.dim}(Presiona 'q' o 'Ctrl+C' para cerrar el túnel y regresar)${COLORS.reset}\n`);
+        });
+
+        this.currentStateMachine.on('log', ({ level, message }) => {
+            const color = level === 'error' ? COLORS.red : level === 'warn' ? COLORS.yellow : COLORS.dim;
+            console.log(`${color}[${level.toUpperCase()}] ${message}${COLORS.reset}`);
+        });
+
+        this._setupExitKey();
+        this.currentStateMachine.start();
+    }
+
+    launchTcpTunnel(localPort, preferredPort = null) {
+        console.clear();
+        console.log(ASCII_ART);
+        console.log(`${COLORS.dim}--- INICIALIZANDO TUNEL TCP PURO (Postgres / MySQL / SSH) ---${COLORS.reset}`);
+        console.log(`${COLORS.bright}Puerto Local:${COLORS.reset} ${COLORS.yellow}${localPort}${COLORS.reset}`);
+        console.log(`${COLORS.bright}Servidor Hub:${COLORS.reset} ${COLORS.cyan}${this.config.remoteHost}:${this.config.remotePort}${COLORS.reset}`);
+        if (this.config.apiKey) {
+            console.log(`${COLORS.bright}API Key:${COLORS.reset} ${COLORS.magenta}activa (Modo VIP)${COLORS.reset}`);
+        }
+        console.log('');
+
+        this.currentStateMachine = new TunnelStateMachine(this.config, 'tcp', localPort, {
+            isTcp: true,
+            preferredPort
+        });
+
+        this.currentStateMachine.on('tcp_ready', ({ publicPort, publicHost, localPort }) => {
+            console.log(`${COLORS.green}[OK] Canal TCP establecido con éxito.${COLORS.reset}\n`);
+            console.log(`${COLORS.bright}🔌 ACCESO TCP PUBLICO ACTIVO:${COLORS.reset}`);
+            console.log(`   ${COLORS.cyan}${COLORS.bright}${publicHost}:${publicPort}${COLORS.reset} -> ${COLORS.yellow}127.0.0.1:${localPort}${COLORS.reset}\n`);
+
+            console.log(`${COLORS.bright}EJEMPLOS DE CONEXION:${COLORS.reset}`);
+            console.log(`   ${COLORS.dim}PostgreSQL:${COLORS.reset} psql -h ${publicHost} -p ${publicPort} -U tu_usuario`);
+            console.log(`   ${COLORS.dim}SSH / Raw:${COLORS.reset}  ssh -p ${publicPort} tu_usuario@${publicHost}\n`);
+
+            console.log(`${COLORS.dim}(Presiona 'q' o 'Ctrl+C' para cerrar el túnel y regresar)${COLORS.reset}\n`);
+        });
+
+        this.currentStateMachine.on('log', ({ level, message }) => {
+            const color = level === 'error' ? COLORS.red : level === 'warn' ? COLORS.yellow : COLORS.dim;
+            console.log(`${color}[${level.toUpperCase()}] ${message}${COLORS.reset}`);
+        });
+
+        this._setupExitKey();
+        this.currentStateMachine.start();
+    }
+
+    _setupExitKey() {
+        readline.emitKeypressEvents(process.stdin);
+        if (process.stdin.isTTY) process.stdin.setRawMode(true);
+
+        const keyHandler = (str, key) => {
+            if (key && (key.name === 'q' || key.name === 'escape' || (key.ctrl && key.name === 'c'))) {
+                console.log(`\n${COLORS.yellow}[SISTEMA] Cerrando túnel de forma segura...${COLORS.reset}`);
+                process.stdin.removeListener('keypress', keyHandler);
+                if (process.stdin.isTTY) process.stdin.setRawMode(false);
+                if (this.currentStateMachine) this.currentStateMachine.stop();
+                setTimeout(() => this.showMenu(), 800);
+            }
+        };
+
+        process.stdin.on('keypress', keyHandler);
+    }
+
+    async run() {
+        const args = process.argv.slice(2);
+
+        // Parsear flag --key <apiKey> o -k <apiKey>
+        const keyIdx = args.findIndex(a => a === '--key' || a === '-k');
+        if (keyIdx !== -1 && args[keyIdx + 1]) {
+            this.config = new ClientConfigBuilder()
+                .withRemoteHost(this.config.remoteHost)
+                .withRemotePort(this.config.remotePort)
+                .withApiKey(args[keyIdx + 1])
+                .build();
+            args.splice(keyIdx, 2);
+        }
+
+        // Parsear flag --tcp <puertoLocal> [puertoRemotoDeseado]
+        const tcpIdx = args.findIndex(a => a === '--tcp' || a === '-t');
+        if (tcpIdx !== -1) {
+            const tcpPort = parseInt(args[tcpIdx + 1]);
+            if (isNaN(tcpPort)) {
+                console.error(`${COLORS.red}[ERROR] Debes especificar un puerto local para el túnel TCP. Ej: npx rport-go --tcp 5432${COLORS.reset}`);
+                process.exit(1);
+            }
+            const preferredPort = parseInt(args[tcpIdx + 2]) || null;
+            const tcpCmd = new StartTcpTunnelCommand(this, tcpPort, preferredPort);
+            return tcpCmd.execute();
+        }
+
+        // Soporte para argumentos directos: npx rport-go <puerto> [subdominio]
+        const argPort = parseInt(args[0]);
+        if (!isNaN(argPort)) {
+            const argSubdomain = args[1] || 'dev-' + Math.floor(Math.random() * 10000);
+            const directCmd = new StartDirectTunnelCommand(this, argPort, argSubdomain);
+            return directCmd.execute();
+        }
+
+        this.showMenu();
+    }
 }
 
-main().catch(err => {
-    console.error(`${COLORS.red}[FATAL] ${err.message}${COLORS.reset}`);
-});
+if (require.main === module) {
+    const cli = new ReversePortCLI();
+    cli.run().catch(err => {
+        console.error(`${COLORS.red}[FATAL] ${err.message}${COLORS.reset}`);
+    });
+}
+
+module.exports = { ReversePortCLI };

@@ -29,7 +29,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Inter+Tight:wght@800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Inter+Tight:wght@800&family=JetBrains+Mono:wght@400;500;700&display=swap"
         rel="stylesheet">
 
     <!-- Favicon -->
@@ -43,8 +43,9 @@
 </head>
 
 <body class="dark">
-    <!-- Fondo Animado (Mesh Gradient) -->
+    <!-- Fondo Animado (Mesh Gradient + Canvas de Partículas) -->
     <div class="mesh-gradient"></div>
+    <canvas id="abyssal-canvas" class="abyssal-canvas"></canvas>
 
     <nav class="glass">
         <div class="container nav-content">
@@ -122,8 +123,76 @@
             <div class="hero-cta">
                 <button class="btn-primary" onclick="scrollToDocs()">Empieza ahora</button>
                 <div class="command-box">
-                    <code>npx reverseport --subdominio tu-nombre</code>
+                    <code id="heroMainCommand">npx rport-go 3000</code>
                     <button class="btn-copy" onclick="copyCommand()"><i data-lucide="copy"></i></button>
+                </div>
+            </div>
+
+            <!-- Simulador Visual del Túnel (Hero Interactivo) -->
+            <div class="tunnel-simulator-card glass-card reveal" id="tunnelSimulator">
+                <div class="simulator-header">
+                    <div class="sim-badge"><span class="pulse-dot"></span> SIMULADOR DE TÚNEL EN VIVO</div>
+                    <div class="sim-status-text">Multiplexación TCP / ProtocolAdapter NDJSON</div>
+                </div>
+                <div class="simulator-diagram">
+                    <!-- Nodo 1: Local -->
+                    <div class="sim-node sim-node-local">
+                        <div class="node-icon"><i data-lucide="laptop"></i></div>
+                        <div class="node-info">
+                            <span class="node-title">TU LOCALHOST</span>
+                            <code class="node-addr" id="simLocalAddr">localhost:3000</code>
+                        </div>
+                    </div>
+
+                    <!-- Tubo Abisal con Paquetes Luminosos -->
+                    <div class="sim-tube">
+                        <div class="tube-track">
+                            <span class="light-packet p1"></span>
+                            <span class="light-packet p2"></span>
+                            <span class="light-packet p3"></span>
+                        </div>
+                        <div class="hub-center">
+                            <div class="hub-pulse-ring"></div>
+                            <img src="assets/pulpo_terminal.svg" alt="Hub" class="hub-icon">
+                            <span class="hub-tag">HUB VPS 82.180.160.218</span>
+                        </div>
+                        <div class="tube-track">
+                            <span class="light-packet p4"></span>
+                            <span class="light-packet p5"></span>
+                        </div>
+                    </div>
+
+                    <!-- Nodo 2: Público -->
+                    <div class="sim-node sim-node-public">
+                        <div class="node-icon icon-public"><i data-lucide="globe"></i></div>
+                        <div class="node-info">
+                            <span class="node-title">ACCESO GLOBAL SSL</span>
+                            <code class="node-addr text-cyan" id="simPublicAddr">https://demo.reverseport.net</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selector Rápido de Casos de Uso (Tabs de 1 Clic) -->
+            <div class="use-cases-box glass-card reveal">
+                <div class="cases-header">
+                    <span class="cases-title"><i data-lucide="layers"></i> SELECCIONA TU STACK FAVORITO:</span>
+                    <div class="cases-tabs">
+                        <button class="case-tab active" onclick="selectStack('nextjs', this)"><i data-lucide="globe"></i> Next.js / Vite</button>
+                        <button class="case-tab" onclick="selectStack('whatsapp', this)"><i data-lucide="message-circle"></i> Bot WhatsApp</button>
+                        <button class="case-tab" onclick="selectStack('stripe', this)"><i data-lucide="credit-card"></i> Stripe Webhooks</button>
+                        <button class="case-tab" onclick="selectStack('python', this)"><i data-lucide="terminal"></i> FastAPI / Python</button>
+                    </div>
+                </div>
+                <div class="case-details">
+                    <div class="case-desc">
+                        <h4 id="caseTitle">Next.js, Vite, React o Astro</h4>
+                        <p id="caseDesc">Expón tu servidor frontend instantáneamente para probar responsive en tu celular o compartir avances con clientes.</p>
+                    </div>
+                    <div class="case-command-wrap">
+                        <code id="caseCommand">npx rport-go 3000</code>
+                        <button class="btn-case-copy" onclick="copyCaseCommand()"><i data-lucide="copy"></i> Copiar comando</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -240,7 +309,8 @@
                 <span class="terms-trigger" onclick="toggleTerms()">Términos del Servicio</span>
             </div>
         </div>
-    </footer>
+    <!-- Toast Notifications Container (Glassmorphism) -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="app.js"></script>
 </body>

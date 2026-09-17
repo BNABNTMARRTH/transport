@@ -1,0 +1,32 @@
+{
+  "keys": {
+    "rport_sec_9089e28c3c9bc046": {
+      "owner": "Default VIP User",
+      "reservedSubdomains": [
+        "vip-demo",
+        "staging-app"
+      ],
+      "allowCustomSubdomains": true,
+      "allowTcpTunnels": true,
+      "createdAt": "2026-09-17T22:24:26.644Z"
+    },
+    "rport_eb0c191294e9074325aed40b": {
+      "owner": "Enterprise Client",
+      "reservedSubdomains": [
+        "mi-empresa",
+        "staging-crm",
+        "produccion-vip"
+      ],
+      "allowCustomSubdomains": true,
+      "allowTcpTunnels": true,
+      "createdAt": "2026-09-17T22:24:26.648Z"
+    }
+  },
+  "claimedSubdomains": {
+    "vip-demo": "rport_sec_9089e28c3c9bc046",
+    "staging-app": "rport_sec_9089e28c3c9bc046",
+    "mi-empresa": "rport_eb0c191294e9074325aed40b",
+    "staging-crm": "rport_eb0c191294e9074325aed40b",
+    "produccion-vip": "rport_eb0c191294e9074325aed40b"
+  }
+}
