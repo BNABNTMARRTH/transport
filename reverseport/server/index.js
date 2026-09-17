@@ -193,7 +193,17 @@ if (sslOptions) {
 
             if (hostMatch) {
                 const { host, subdomain } = extractHostAndSubdomain(hostMatch[1]);
-                const isRoot = (subdomain === 'reverseport' || host === ROOT_DOMAIN);
+                const clean = host.split(':')[0].toLowerCase();
+                const isRoot = (
+                    clean === ROOT_DOMAIN ||
+                    clean === 'www.' + ROOT_DOMAIN ||
+                    clean.startsWith('localhost') ||
+                    clean === '127.0.0.1' ||
+                    clean === '82.180.160.218' ||
+                    subdomain === 'reverseport' ||
+                    subdomain === 'www' ||
+                    !clean
+                );
 
                 if (!isRoot) {
                     // Tráfico dirigido a un túnel

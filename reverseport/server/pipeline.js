@@ -22,6 +22,21 @@ class BaseHandler {
     }
 }
 
+function checkIsRoot(host, subdomain, rootDomain = 'reverseport.net') {
+    const cleanHost = (host || '').split(':')[0].toLowerCase();
+    const cleanSub = (subdomain || '').toLowerCase();
+    return (
+        cleanHost === rootDomain ||
+        cleanHost === 'www.' + rootDomain ||
+        cleanHost.startsWith('localhost') ||
+        cleanHost === '127.0.0.1' ||
+        cleanHost === '82.180.160.218' ||
+        cleanSub === 'reverseport' ||
+        cleanSub === 'www' ||
+        !cleanHost
+    );
+}
+
 /**
  * SecurityFilterHandler:
  * Valida y protege contra el uso de subdominios reservados para phishing o spoofing.
@@ -35,7 +50,7 @@ class SecurityFilterHandler extends BaseHandler {
 
     handle(context) {
         const { host, subdomain, socket, res } = context;
-        const isRoot = (subdomain === 'reverseport' && (host === this.rootDomain || host.startsWith('localhost') || !host));
+        const isRoot = checkIsRoot(host, subdomain, this.rootDomain);
         
         // Solo bloquea si NO es el dominio raíz de la landing
         if (!isRoot && subdomain && this.reservedSet.has(subdomain.toLowerCase())) {
@@ -68,7 +83,7 @@ class InstallerRouteHandler extends BaseHandler {
         const { req, res, host, subdomain } = context;
         if (!req || !res) return super.handle(context);
 
-        const isRoot = (subdomain === 'reverseport' || host === this.rootDomain || host.startsWith('localhost'));
+        const isRoot = checkIsRoot(host, subdomain, this.rootDomain);
         if (req.url === '/install' && isRoot) {
             this.staticFacade.serveInstaller(res);
             return true;
@@ -92,7 +107,7 @@ class SecurityDocsRouteHandler extends BaseHandler {
         const { req, res, host, subdomain } = context;
         if (!req || !res) return super.handle(context);
 
-        const isRoot = (subdomain === 'reverseport' || host === this.rootDomain || host.startsWith('localhost'));
+        const isRoot = checkIsRoot(host, subdomain, this.rootDomain);
         if (req.url === '/security' && isRoot) {
             this.staticFacade.serveSecurityDocs(res);
             return true;
@@ -116,7 +131,7 @@ class LandingPageRouteHandler extends BaseHandler {
         const { req, res, host, subdomain } = context;
         if (!req || !res) return super.handle(context);
 
-        const isRoot = (subdomain === 'reverseport' || host === this.rootDomain || host.startsWith('localhost'));
+        const isRoot = checkIsRoot(host, subdomain, this.rootDomain);
         if (isRoot) {
             this.staticFacade.serveFile(res, req.url);
             return true;

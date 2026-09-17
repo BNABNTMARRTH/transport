@@ -543,12 +543,18 @@ footer {
 
 /* --- ANIMATIONS --- */
 .reveal {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 1; /* Visible por defecto para renderizado instantáneo garantizado */
+    transform: translateY(0);
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.reveal.active {
+/* Solo aplicar efecto de scroll diferido a secciones secundarias si JS está activo */
+body.js-ready .reveal:not(.initial-view):not(.hero-visual):not(.entry-title) {
+    opacity: 0;
+    transform: translateY(24px);
+}
+
+body.js-ready .reveal.active {
     opacity: 1;
     transform: translateY(0);
 }

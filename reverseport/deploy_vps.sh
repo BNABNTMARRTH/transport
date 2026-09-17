@@ -23,6 +23,7 @@ scp "$BASE_DIR/client/"*.js root@$VPS_IP:~/reverseport/client/
 
 echo "📤 Subiendo frontend / landing page bioluminiscente..."
 scp "$BASE_DIR/website/"*.html "$BASE_DIR/website/"*.css "$BASE_DIR/website/"*.js "$BASE_DIR/website/"*.sh root@$VPS_IP:~/reverseport/website/
+scp -r "$BASE_DIR/website/assets" root@$VPS_IP:~/reverseport/website/
 
 # 3. Reiniciar proceso en PM2
 echo "⚙️ Reiniciando proceso en PM2..."

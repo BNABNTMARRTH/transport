@@ -654,6 +654,16 @@ let terminalFacade = null;
 let animationFacade = null;
 
 document.addEventListener("DOMContentLoaded", () => {
+    document.body.classList.add('js-ready');
+    
+    // Activar inmediatamente todos los elementos visibles en viewport
+    document.querySelectorAll(".reveal").forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 150) {
+            el.classList.add("active");
+        }
+    });
+
     if (window.lucide) {
         lucide.createIcons();
     }
