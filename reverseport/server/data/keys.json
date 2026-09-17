@@ -20,13 +20,23 @@
       "allowCustomSubdomains": true,
       "allowTcpTunnels": true,
       "createdAt": "2026-09-17T22:24:26.648Z"
+    },
+    "rport_f8ba40e06d5a2b3314f7bec0": {
+      "owner": "Enterprise Client",
+      "reservedSubdomains": [
+        "mi-empresa",
+        "staging-crm"
+      ],
+      "allowCustomSubdomains": true,
+      "allowTcpTunnels": true,
+      "createdAt": "2026-09-17T22:57:24.883Z"
     }
   },
   "claimedSubdomains": {
     "vip-demo": "rport_sec_9089e28c3c9bc046",
     "staging-app": "rport_sec_9089e28c3c9bc046",
-    "mi-empresa": "rport_eb0c191294e9074325aed40b",
-    "staging-crm": "rport_eb0c191294e9074325aed40b",
+    "mi-empresa": "rport_f8ba40e06d5a2b3314f7bec0",
+    "staging-crm": "rport_f8ba40e06d5a2b3314f7bec0",
     "produccion-vip": "rport_eb0c191294e9074325aed40b"
   }
 }

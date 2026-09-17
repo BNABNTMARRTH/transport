@@ -20,7 +20,9 @@ class StaticSiteFacade {
             '.jpg': 'image/jpeg',
             '.jpeg': 'image/jpeg',
             '.ico': 'image/x-icon',
-            '.txt': 'text/plain; charset=utf-8'
+            '.txt': 'text/plain; charset=utf-8',
+            '.glb': 'model/gltf-binary',
+            '.gltf': 'model/gltf+json'
         };
     }
 

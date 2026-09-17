@@ -4,315 +4,436 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>reverseport.net | Mi túnel con tentáculos 🐙</title>
+    <title>ReversePort // Túneles Inversos de Alto Rendimiento 🐙</title>
     <meta name="description"
-        content="Expón tus puertos locales al internet de forma segura con reversePort. La alternativa más elegante y potente a ngrok.">
+        content="Expón tus puertos locales al internet de forma segura con ReversePort. Con inspector de tráfico web, código QR para móviles y túneles TCP para bases de datos.">
 
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://reverseport.net/">
-    <meta property="og:title" content="reversePort | Mi túnel con tentáculos 🐙">
+    <meta property="og:title" content="ReversePort // Túneles Inversos de Alto Rendimiento 🐙">
     <meta property="og:description"
-        content="Expón tus puertos locales al internet de forma segura. Alternativa gratuita y profesional.">
-    <meta property="og:image" content="https://reverseport.net/assets/logo.svg">
+        content="Alternativa open-source moderna a ngrok. Cero configuración, inspector de tráfico local y túneles TCP.">
+    <meta property="og:image" content="assets/logo.svg">
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://reverseport.net/">
-    <meta property="twitter:title" content="reversePort | Mi túnel con tentáculos 🐙">
-    <meta property="twitter:description"
-        content="Expón tus puertos locales al internet de forma segura. Alternativa gratuita y profesional.">
-    <meta property="twitter:image" content="https://reverseport.net/assets/logo.svg">
-    <!-- SYNC-CHECK-V23 -->
-
-    <!-- Tipografía Premium -->
+    <!-- Tipografía Moderna: Inter Tight + Inter + JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Inter+Tight:wght@800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 
-    <!-- Estilos -->
-    <link rel="stylesheet" href="style.css?v=20260917_3">
+    <!-- Estilos Minimalistas Developer Pro -->
+    <link rel="stylesheet" href="style.css?v=20260917_v4">
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
-<body class="dark">
-    <!-- Fondo Animado (Mesh Gradient + Canvas de Partículas) -->
-    <div class="mesh-gradient"></div>
-    <canvas id="abyssal-canvas" class="abyssal-canvas"></canvas>
+<body class="theme-obsidian">
+    <!-- Barra Superior de Navegación -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-link">
+                <img src="assets/logo.svg" alt="ReversePort" class="brand-logo">
+                <span class="brand-name">reversePort</span>
+                <span class="version-badge">v2.0</span>
+            </a>
 
-    <nav class="glass">
-        <div class="container nav-content">
-            <div class="logo">
-                <img src="assets/logo.svg" alt="Reverse Port Logo" class="logo-icon">
-                <span class="logo-text">reversePort</span>
-            </div>
             <div class="nav-links">
-                <a href="#doc">Documentación</a>
-                <a href="security.html">Seguridad</a>
-                <a href="regalos.html" class="nav-maki-text">Invitar un Maki</a>
-                <a href="https://github.com" class="btn-github"><i data-lucide="github"></i> GitHub</a>
+                <a href="#features" class="nav-item">Características</a>
+                <a href="#showcase" class="nav-item">Inspector 4040</a>
+                <a href="#tcp" class="nav-item">Túneles TCP</a>
+                <a href="security.html" class="nav-item">Seguridad</a>
+                <a href="https://github.com/BNABNTMARRTH/transport" target="_blank" rel="noopener" class="nav-item github-link">
+                    <i data-lucide="github"></i> GitHub
+                </a>
+            </div>
+
+            <div class="nav-cta">
+                <button class="btn-copy-quick" onclick="copyHeroCommand('npx rport-go 3000')">
+                    <code>npx rport-go 3000</code>
+                    <i data-lucide="copy" class="copy-icon"></i>
+                </button>
             </div>
         </div>
     </nav>
 
-    <header class="hero container">
-        <!-- Terminal Visual (Moved to the Top) -->
-        <div class="hero-visual reveal initial-view">
-            <div class="terminal-window glass">
-                <div class="terminal-header">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
+    <main>
+        <!-- HERO SECTION: The Master Showcase -->
+        <section class="hero-section">
+            <div class="hero-container">
+                <!-- Tag Superior -->
+                <div class="hero-tag">
+                    <span class="dot-live"></span>
+                    <span>Túnel Inverso Open Source de Alto Rendimiento</span>
                 </div>
-                <div class="terminal-body" id="terminal-body" onclick="focusTerminal()">
-                    <div class="terminal-header-art">
-                        <pre class="ascii-art">
-+-----------------------------------------------------------+
-|                                                           |
-|  ██████╗ ███████╗██╗   ██╗███████╗██████╗ ███████╗███████╗|
-|  ██╔══██╗██╔════╝██║   ██║██╔════╝██╔══██╗██╔════╝██╔════╝|
-|  ██████╔╝█████╗  ██║   ██║█████╗  ██████╔╝███████╗█████╗  |
-|  ██╔══██╗██╔══╝  ╚██╗ ██╔╝██╔══╝  ██╔══██╗╚════██║██╔══╝  |
-|  ██║  ██║███████╗ ╚████╔╝ ███████╗██║  ██║███████║███████╗|
-|  ╚═╝  ╚═╝╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝|
-|                                                           |
-|            ██████╗  ██████╗ ██████╗ ████████╗             |
-|            ██╔══██╗██╔═══██╗██╔══██╗╚══██╔══╝             |
-|            ██████╔╝██║   ██║██████╔╝   ██║                |
-|            ██╔═══╝ ██║   ██║██╔══██╗   ██║                |
-|            ██║     ╚██████╔╝██║  ██║   ██║                |
-|            ╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝                |
-|                                                           |
-|                        A B I S M O                        |
-|                          v0.1.0                           |
-+-----------------------------------------------------------+
-                        </pre>
-                        <div id="walking-octopus" class="walking-octopus">
-                            <img src="assets/pulpo_terminal.svg" alt="Octopus">
-                        </div>
-                    </div>
-                    <div id="terminal-history">
-                        <p class="success">--- Bienvenido al Abismo de reversePort ---</p>
-                        <p>Escribe 'help' para ver los comandos disponibles.</p>
-                    </div>
-                    <div class="terminal-input-line">
-                        <span class="prompt">$</span>
-                        <input type="text" id="terminal-input" spellcheck="false" autocomplete="off" autofocus>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="entry-title reveal">
-            <h2 class="main-title text-abyssal text-bloom" data-text="Potencia Abismal.">Potencia Abismal.</h2>
-        </div>
+                <!-- Título Principal -->
+                <h1 class="hero-headline">
+                    Túneles seguros desde <span class="gradient-text">localhost</span> al mundo en 1 comando.
+                </h1>
 
-        <!-- Hero Content (Follows Golden Scale on Scroll) -->
-        <div class="hero-content-scroll reveal section-abyssal">
-            <h1 class="text-abyssal">Mi túnel con <span class="text-gradient">tentáculos</span><span
-                    class="hero-version">V0.1.0</span></h1>
-            <h2 class="hero-desc">Comparte tu localhost al mundo con la elegancia del abismo.</h2>
+                <!-- Subtítulo -->
+                <p class="hero-subline">
+                    Comparte tu entorno de desarrollo al instante. Con <strong class="text-white">Inspector de Tráfico Web</strong> en <code>localhost:4040</code>, códigos QR automáticos para el móvil y túneles TCP puros para bases de datos.
+                </p>
 
-            <div class="hero-cta">
-                <button class="btn-primary" onclick="scrollToDocs()">Empieza ahora</button>
-                <div class="command-box">
-                    <code id="heroMainCommand">npx rport-go 3000</code>
-                    <button class="btn-copy" onclick="copyCommand()"><i data-lucide="copy"></i></button>
-                </div>
-            </div>
-
-            <!-- Simulador Visual del Túnel (Hero Interactivo) -->
-            <div class="tunnel-simulator-card glass-card reveal" id="tunnelSimulator">
-                <div class="simulator-header">
-                    <div class="sim-badge"><span class="pulse-dot"></span> SIMULADOR DE TÚNEL EN VIVO</div>
-                    <div class="sim-status-text">Multiplexación TCP / ProtocolAdapter NDJSON</div>
-                </div>
-                <div class="simulator-diagram">
-                    <!-- Nodo 1: Local -->
-                    <div class="sim-node sim-node-local">
-                        <div class="node-icon"><i data-lucide="laptop"></i></div>
-                        <div class="node-info">
-                            <span class="node-title">TU LOCALHOST</span>
-                            <code class="node-addr" id="simLocalAddr">localhost:3000</code>
-                        </div>
-                    </div>
-
-                    <!-- Tubo Abisal con Paquetes Luminosos -->
-                    <div class="sim-tube">
-                        <div class="tube-track">
-                            <span class="light-packet p1"></span>
-                            <span class="light-packet p2"></span>
-                            <span class="light-packet p3"></span>
-                        </div>
-                        <div class="hub-center">
-                            <div class="hub-pulse-ring"></div>
-                            <img src="assets/pulpo_terminal.svg" alt="Hub" class="hub-icon">
-                            <span class="hub-tag">HUB VPS 82.180.160.218</span>
-                        </div>
-                        <div class="tube-track">
-                            <span class="light-packet p4"></span>
-                            <span class="light-packet p5"></span>
-                        </div>
-                    </div>
-
-                    <!-- Nodo 2: Público -->
-                    <div class="sim-node sim-node-public">
-                        <div class="node-icon icon-public"><i data-lucide="globe"></i></div>
-                        <div class="node-info">
-                            <span class="node-title">ACCESO GLOBAL SSL</span>
-                            <code class="node-addr text-cyan" id="simPublicAddr">https://demo.reverseport.net</code>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Selector Rápido de Casos de Uso (Tabs de 1 Clic) -->
-            <div class="use-cases-box glass-card reveal">
-                <div class="cases-header">
-                    <span class="cases-title"><i data-lucide="layers"></i> SELECCIONA TU STACK FAVORITO:</span>
-                    <div class="cases-tabs">
-                        <button class="case-tab active" onclick="selectStack('nextjs', this)"><i data-lucide="globe"></i> Next.js / Vite</button>
-                        <button class="case-tab" onclick="selectStack('whatsapp', this)"><i data-lucide="message-circle"></i> Bot WhatsApp</button>
-                        <button class="case-tab" onclick="selectStack('stripe', this)"><i data-lucide="credit-card"></i> Stripe Webhooks</button>
-                        <button class="case-tab" onclick="selectStack('python', this)"><i data-lucide="terminal"></i> FastAPI / Python</button>
-                    </div>
-                </div>
-                <div class="case-details">
-                    <div class="case-desc">
-                        <h4 id="caseTitle">Next.js, Vite, React o Astro</h4>
-                        <p id="caseDesc">Expón tu servidor frontend instantáneamente para probar responsive en tu celular o compartir avances con clientes.</p>
-                    </div>
-                    <div class="case-command-wrap">
-                        <code id="caseCommand">npx rport-go 3000</code>
-                        <button class="btn-case-copy" onclick="copyCaseCommand()"><i data-lucide="copy"></i> Copiar comando</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Section: High Performance Advantages -->
-    <section id="advantages" class="container section-abyssal">
-        <div class="section-header">
-            <h2 class="reveal text-abyssal text-bloom" data-text="Ventajas de Alto Rendimiento.">Ventajas de Alto
-                Rendimiento.</h2>
-        </div>
-        <div class="features-grid">
-            <div class="feature-card glass reveal">
-                <div class="feature-icon"><i data-lucide="zap"></i></div>
-                <h3>Despliegue Instantáneo</h3>
-                <p>Sin procesos de registro ni gestión de tokens. La herramienta más ágil para transitar de local a
-                    global mediante infraestructura CLI-First.</p>
-            </div>
-            <div class="feature-card glass reveal">
-                <div class="feature-icon"><i data-lucide="cpu"></i></div>
-                <h3>Arquitectura Multiplexada</h3>
-                <p>Gestión optimizada de flujos de datos concurrentes, garantizando estabilidad superior en aplicaciones
-                    de alto tráfico y WebSockets.</p>
-            </div>
-            <div class="feature-card glass reveal">
-                <div class="feature-icon"><i data-lucide="heart"></i></div>
-                <h3>Filosofía Abismo</h3>
-                <p>Modelo basado en contribuciones voluntarias que asegura la independencia del proyecto y una relación
-                    directa con la comunidad.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section: How it Works -->
-    <section id="how-it-works" class="container section-abyssal">
-        <div class="section-header">
-            <h2 class="reveal text-abyssal">Emerge a la Superficie.</h2>
-        </div>
-        <div class="steps-flow reveal">
-            <div class="step-card glass">
-                <span class="step-num">01</span>
-                <h3>Instala</h3>
-                <p><code>npm install -g reverseport</code></p>
-            </div>
-            <div class="step-card glass">
-                <span class="step-num">02</span>
-                <h3>Conecta</h3>
-                <p>Ejecuta el comando y elige tu dominio.</p>
-            </div>
-            <div class="step-card glass">
-                <span class="step-num">03</span>
-                <h3>Expon</h3>
-                <p>Tu localhost es ahora parte del internet global.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section: Security Protocol -->
-    <section id="security" class="container section-abyssal">
-        <div class="section-header">
-            <h2 class="reveal text-abyssal">Protocolo de Confianza y Seguridad.</h2>
-        </div>
-        <div class="security-grid">
-            <div class="security-item glass reveal">
-                <div class="security-token">01</div>
-                <div class="security-info">
-                    <h3>Capa Intermedia de Verificación</h3>
-                    <p>Implementación de una pantalla de seguridad (Interstitial) para prevenir ataques de phishing y
-                        alertar sobre el acceso a túneles de desarrollo.</p>
-                </div>
-            </div>
-            <div class="security-item glass reveal">
-                <div class="security-token">02</div>
-                <div class="security-info">
-                    <h3>Aislamiento de Recursos (Sandbox)</h3>
-                    <p>El túnel actúa únicamente como un conducto de red para el puerto especificado. El sistema host
-                        permanece aislado bajo la seguridad nativa del SO.</p>
-                </div>
-            </div>
-            <div class="security-item glass reveal">
-                <div class="security-token">03</div>
-                <div class="security-info">
-                    <h3>Sistema de Alerta y Reporte</h3>
-                    <p>Mecanismos integrados de reporte de abuso instantáneo para garantizar que el Abismo permanezca
-                        como un entorno seguro para todos.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <footer class="container">
-        <div class="footer-content reveal">
-            <div class="footer-brand">
-                <p>© 2026 reversePort</p>
-            </div>
-            <div class="footer-logo" onclick="toggleTerms()">
-                <img src="assets/logo.svg" alt="Reverse Port Logo" class="logo-icon">
-                <div class="speech-bubble" id="termsBubble">
-                    <div class="bubble-header">
-                        <button class="bubble-close" onclick="event.stopPropagation(); toggleTerms()">
-                            <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                <!-- Caja de Comando Hero -->
+                <div class="hero-command-wrap">
+                    <div class="command-box" onclick="copyHeroCommand('npx rport-go 3000')">
+                        <span class="prompt-symbol">$</span>
+                        <code class="command-text">npx rport-go 3000</code>
+                        <button class="btn-copy-trigger" title="Copiar al portapapeles">
+                            <i data-lucide="copy" id="hero-copy-icon"></i>
+                            <span id="hero-copy-text">Copiar</span>
                         </button>
-                        <span class="bubble-title">Términos del Servicio</span>
                     </div>
-                    <div class="bubble-content">
-                        <p>El uso de esta plataforma es bajo responsabilidad exclusiva del usuario. Queda prohibido el
-                            uso del servicio para actividades ilícitas, malware, propagación de virus, spam o cualquier
-                            actividad que viole los términos del servicio.</p>
+                    <span class="command-hint">⚡ Sin registros obligatorios. Requiere Node.js 18+.</span>
+                </div>
+
+                <!-- DUAL STAGE: 3D Octopus + Interactive Terminal Widget -->
+                <div class="dual-stage-grid" id="showcase">
+                    
+                    <!-- LADO IZQUIERDO: Guardián 3D WebGL (pulbo_monstruo.glb) -->
+                    <div class="stage-card card-3d">
+                        <div class="card-header-subtle">
+                            <div class="badge-status-dot">
+                                <span class="pulse-emerald"></span>
+                                <span>GUARDIÁN 3D INTERACTIVO</span>
+                            </div>
+                            <span class="hint-3d">Arrastra para rotar // Clic para atacar</span>
+                        </div>
+
+                        <!-- Canvas 3D Three.js Container -->
+                        <div id="canvas3d-container" class="canvas-3d-wrapper">
+                            <!-- Loader Overlay -->
+                            <div id="octopus-loader-badge" class="loader-3d-overlay">
+                                <div class="spinner-neon"></div>
+                                <span id="octopus-load-text">Cargando Guardián 3D...</span>
+                                <div class="progress-bar-bg">
+                                    <div id="octopus-load-progress" class="progress-bar-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer-3d">
+                            <button class="btn-attack-action" onclick="window.octopusEngine && window.octopusEngine.triggerAttack()">
+                                ⚡ Provocar Pulso Abisal
+                            </button>
+                            <span class="footer-tip">Bioluminiscencia reactiva al cursor</span>
+                        </div>
+                    </div>
+
+                    <!-- LADO DERECHO: Interactive Terminal & Inspector Pro Widget -->
+                    <div class="stage-card card-terminal">
+                        <!-- macOS Window Header with Tabs -->
+                        <div class="terminal-nav-header">
+                            <div class="mac-dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+
+                            <div class="terminal-tabs">
+                                <button class="tab-item active" onclick="switchWidgetTab('cli')">
+                                    <i data-lucide="terminal"></i> Terminal CLI
+                                </button>
+                                <button class="tab-item" onclick="switchWidgetTab('inspector')">
+                                    <i data-lucide="activity"></i> Inspector Web 4040
+                                </button>
+                                <button class="tab-item" onclick="switchWidgetTab('tcp')">
+                                    <i data-lucide="database"></i> Túnel TCP
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TAB 1: Terminal CLI Content -->
+                        <div class="tab-panel active" id="panel-cli">
+                            <div class="terminal-body-content">
+                                <div class="term-line prompt-line">
+                                    <span class="term-dim">$</span> <span class="term-cyan">npx rport-go 3000</span>
+                                </div>
+                                <div class="term-line term-dim">
+                                    [info] Estableciendo canal de CONTROL hacia reverseport.net:8080...
+                                </div>
+                                <div class="term-line term-green">
+                                    [OK] Canal de CONTROL establecido con éxito.
+                                </div>
+                                <div class="term-box-url">
+                                    <div class="box-label">🌐 ACCESO PUBLICO ACTIVO:</div>
+                                    <a href="https://dev-8492.reverseport.net" target="_blank" class="public-url-link">
+                                        https://dev-8492.reverseport.net
+                                    </a>
+                                </div>
+                                <div class="term-box-inspector">
+                                    <span class="term-dim">🔍 Inspector Web:</span> <a href="http://127.0.0.1:4040" target="_blank" class="inspector-link">http://127.0.0.1:4040</a>
+                                </div>
+                                <div class="term-qr-preview">
+                                    <span class="term-dim">📱 ESCANEAR CON LA CAMARA DEL MOVIL:</span>
+                                    <pre class="qr-art">  █████████████████████████
+  ██ ▄▄▄▄▄ █▀▄█ ▄█ ▄▄▄▄▄ ██
+  ██ █   █ █ █ ▀██ █   █ ██
+  ██ █▄▄▄█ █▀▀█▄██ █▄▄▄█ ██
+  ██▄▄▄▄▄▄▄█▄█ ▀ █▄▄▄▄▄▄▄██
+  ██ ▄██▄█▄█ ▄▄▀██ ▄█ ▄▄ ██
+  ██ ▄▄▄▄▄ █▄▀█▀██ █ █▄▀ ██
+  ██ █   █ █ █ ▄▀█▄█▀█▀  ██
+  ██ █▄▄▄█ █▀ █▄██▄▄ █ ▄ ██
+  ██▄▄▄▄▄▄▄█▄▄▄███▄▄██▄▄▄██
+  █████████████████████████</pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: Inspector Web 4040 Interactive Simulation -->
+                        <div class="tab-panel" id="panel-inspector">
+                            <div class="inspector-sim-body">
+                                <div class="inspector-sim-topbar">
+                                    <span class="sim-badge-live"><span class="dot-emerald"></span> SSE EN VIVO (localhost:4040)</span>
+                                    <button class="btn-replay-demo" onclick="triggerSimulatedReplay()">
+                                        ⚡ Probar Replay de Petición
+                                    </button>
+                                </div>
+                                <div class="inspector-sim-table">
+                                    <div class="sim-row header-row">
+                                        <span>METODO</span>
+                                        <span>RUTA</span>
+                                        <span>ESTADO</span>
+                                        <span>TIEMPO</span>
+                                    </div>
+                                    <div class="sim-row" id="sim-row-1">
+                                        <span class="badge-method post">POST</span>
+                                        <span class="sim-path">/webhook/stripe</span>
+                                        <span class="badge-status s200">200 OK</span>
+                                        <span class="sim-time">12ms</span>
+                                    </div>
+                                    <div class="sim-row" id="sim-row-2">
+                                        <span class="badge-method get">GET</span>
+                                        <span class="sim-path">/api/v1/users/me</span>
+                                        <span class="badge-status s200">200 OK</span>
+                                        <span class="sim-time">6ms</span>
+                                    </div>
+                                    <div class="sim-row" id="sim-row-3">
+                                        <span class="badge-method post">POST</span>
+                                        <span class="sim-path">/api/v1/checkout</span>
+                                        <span class="badge-status s200" id="sim-status-replay">200 OK</span>
+                                        <span class="sim-time" id="sim-time-replay">18ms</span>
+                                    </div>
+                                </div>
+                                <div class="inspector-sim-detail" id="sim-detail-box">
+                                    <div class="detail-line"><strong>Request Payload:</strong> <code>{"event":"payment_intent.succeeded","amount":4900}</code></div>
+                                    <div class="detail-line"><strong>Local Target:</strong> <code>http://127.0.0.1:3000/webhook/stripe</code></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: Túnel TCP Puro Content -->
+                        <div class="tab-panel" id="panel-tcp">
+                            <div class="terminal-body-content">
+                                <div class="term-line prompt-line">
+                                    <span class="term-dim">$</span> <span class="term-cyan">npx rport-go --tcp 5432</span>
+                                </div>
+                                <div class="term-line term-dim">
+                                    [info] Asignando puerto TCP dinámico en el Hub (rango 10000-10100)...
+                                </div>
+                                <div class="term-line term-green">
+                                    [OK] Canal TCP establecido con éxito.
+                                </div>
+                                <div class="term-box-url">
+                                    <div class="box-label">🔌 PUERTO PUBLICO ASIGNADO:</div>
+                                    <span class="public-url-link">reverseport.net:10005</span> &rarr; <span class="term-dim">127.0.0.1:5432</span>
+                                </div>
+                                <div class="tcp-examples-box">
+                                    <div class="example-title">Conexión Remota a PostgreSQL:</div>
+                                    <code>psql -h reverseport.net -p 10005 -U postgres</code>
+                                    
+                                    <div class="example-title" style="margin-top: 12px;">Conexión Remota vía SSH:</div>
+                                    <code>ssh -p 10005 desarrollador@reverseport.net</code>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
-            <div class="footer-legal">
-                <span class="terms-trigger" onclick="toggleTerms()">Términos del Servicio</span>
+        </section>
+
+        <!-- 4 PILARES TECNICOS (Grid Minimalista de Alta Densidad) -->
+        <section class="section-container" id="features">
+            <div class="section-header">
+                <span class="section-tag">CAPACIDADES DE INGENIERIA</span>
+                <h2 class="section-title">Diseñado para desarrolladores exigentes.</h2>
+            </div>
+
+            <div class="features-grid-4">
+                <!-- Card 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon"><i data-lucide="zap"></i></div>
+                    <h3 class="feature-title">Cero Configuración</h3>
+                    <p class="feature-desc">Ejecuta <code>npx rport-go 3000</code> y obtén al instante un enlace HTTPS cifrado con certificado SSL Wildcard automático.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon"><i data-lucide="activity"></i></div>
+                    <h3 class="feature-title">Inspector Web 4040</h3>
+                    <p class="feature-desc">Dashboard en <code>localhost:4040</code> con streaming SSE. Inspecciona cabeceras, JSON body y reenvía (Replay) peticiones con 1 clic.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon"><i data-lucide="qr-code"></i></div>
+                    <h3 class="feature-title">QR Móvil en Terminal</h3>
+                    <p class="feature-desc">Generador QR nativo con bloques Unicode de alta resolución directamente en tu consola para escanear sin escribir URLs largas.</p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="feature-card">
+                    <div class="feature-icon"><i data-lucide="cpu"></i></div>
+                    <h3 class="feature-title">Túneles TCP Puros</h3>
+                    <p class="feature-desc">Comparte bases de datos PostgreSQL, MySQL, Redis o terminales SSH mediante puertos públicos dinámicos sin restricciones HTTP.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SELECTOR INTERACTIVO DE CASOS DE USO -->
+        <section class="section-container" id="use-cases">
+            <div class="section-header">
+                <span class="section-tag">FLUJOS DE TRABAJO</span>
+                <h2 class="section-title">Acelera tus pruebas diarias.</h2>
+            </div>
+
+            <div class="usecase-wrapper">
+                <div class="usecase-tabs">
+                    <button class="uc-tab active" onclick="switchUseCase('webhooks')">⚡ Webhooks de Pago</button>
+                    <button class="uc-tab" onclick="switchUseCase('mobile')">📱 Apps & Móviles</button>
+                    <button class="uc-tab" onclick="switchUseCase('demos')">🤝 Demos a Clientes</button>
+                    <button class="uc-tab" onclick="switchUseCase('databases')">🗄️ Bases de Datos</button>
+                </div>
+
+                <div class="usecase-display" id="usecase-content">
+                    <div class="uc-left">
+                        <h3 id="uc-title">Depura Webhooks de Stripe y Shopify en Vivo</h3>
+                        <p id="uc-desc">Conecta los eventos de producción o sandbox de Stripe a tu servidor local. Si falla la lógica de negocio, reenvía el payload con el botón Replay desde localhost:4040.</p>
+                        <div class="uc-command-line">
+                            <span class="term-dim">$</span> <code id="uc-cmd">npx rport-go 8080 mi-webhook</code>
+                            <button class="btn-copy-sm" onclick="copyHeroCommand(document.getElementById('uc-cmd').innerText)">
+                                <i data-lucide="copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="uc-right">
+                        <div class="uc-metric-card">
+                            <span class="metric-label">Latencia de Reenvío</span>
+                            <span class="metric-val">&lt; 15 ms</span>
+                            <span class="metric-sub">Piping TCP directo en Node.js</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TABLA COMPARATIVA CONCISA -->
+        <section class="section-container" id="comparison">
+            <div class="section-header">
+                <span class="section-tag">BENCHMARK</span>
+                <h2 class="section-title">¿Por qué elegir ReversePort?</h2>
+            </div>
+
+            <div class="table-container">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Característica</th>
+                            <th class="col-highlight">ReversePort v2.0</th>
+                            <th>Ngrok (Free)</th>
+                            <th>Localtunnel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Costo & Registro</strong></td>
+                            <td class="col-highlight"><span class="check-green">✓ 100% Gratis / Sin Registro</span></td>
+                            <td>Requiere Tarjeta / Cuenta</td>
+                            <td>Gratis</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Inspector de Tráfico</strong></td>
+                            <td class="col-highlight"><span class="check-green">✓ Web UI + Botón Replay</span></td>
+                            <td>Limitado a 40 peticiones</td>
+                            <td>❌ No disponible</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Código QR en Terminal</strong></td>
+                            <td class="col-highlight"><span class="check-green">✓ Sí (Nativo Unicode)</span></td>
+                            <td>✓ Sí</td>
+                            <td>❌ No disponible</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Túneles TCP (Bases de Datos/SSH)</strong></td>
+                            <td class="col-highlight"><span class="check-green">✓ Sí (10000-10100)</span></td>
+                            <td>Solo planes de pago</td>
+                            <td>❌ No disponible</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Pantalla de Advertencia al Visitante</strong></td>
+                            <td class="col-highlight"><span class="check-green">✓ Cero Advertencias</span></td>
+                            <td>Muestra interstitial molesto</td>
+                            <td>Muestra pantalla de bypass</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Código Abierto</strong></td>
+                            <td class="col-highlight"><span class="check-green">✓ MIT / GitHub</span></td>
+                            <td>Propietario / Cerrado</td>
+                            <td>Inactivo / Caídas frecuentes</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <img src="assets/logo.svg" alt="ReversePort Logo" class="footer-logo">
+                <span>reversePort // 2026</span>
+            </div>
+
+            <div class="footer-links">
+                <a href="security.html">Documentación de Seguridad</a>
+                <a href="https://github.com/BNABNTMARRTH/transport" target="_blank" rel="noopener">GitHub</a>
+                <a href="javascript:void(0)" onclick="toggleTerms()">Términos de Servicio</a>
             </div>
         </div>
-    <!-- Toast Notifications Container (Glassmorphism) -->
+
+        <div id="termsBubble" class="terms-modal">
+            <div class="terms-card">
+                <div class="terms-header">
+                    <h4>Términos del Servicio ReversePort</h4>
+                    <button onclick="toggleTerms()" class="btn-close-terms">&times;</button>
+                </div>
+                <p>El uso de ReversePort es de responsabilidad exclusiva del usuario. Queda estrictamente prohibido el uso de este servicio para phishing, distribución de malware, spam o cualquier actividad que atente contra la seguridad de terceros.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notifications Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="app.js?v=20260917_3"></script>
+    <!-- Scripts de la Aplicación -->
+    <script type="module">
+        import { CyberOctopus3D } from './octopus3d.js?v=20260917_v4';
+        document.addEventListener('DOMContentLoaded', () => {
+            window.octopusEngine = new CyberOctopus3D('canvas3d-container');
+        });
+    </script>
+    <script src="app.js?v=20260917_v4"></script>
 </body>
 
 </html>

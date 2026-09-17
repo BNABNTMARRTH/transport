@@ -8,6 +8,7 @@ console.log('🧪 Iniciando test: AuthManager (API Keys & Subdomain Reservation)
 const testDataPath = path.join(__dirname, 'test_keys.json');
 if (fs.existsSync(testDataPath)) fs.unlinkSync(testDataPath);
 
+AuthManager.instance = null;
 const auth = new AuthManager(testDataPath);
 
 // 1. Acceso a subdominio anónimo sin API key
