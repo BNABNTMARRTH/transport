@@ -13,10 +13,15 @@ class TrafficInspector extends EventEmitter {
         super();
         this.port = port;
         this.localTargetPort = localTargetPort;
+        this.publicUrl = null;
         this.requests = []; // Buffer en memoria (máximo 100 requests)
         this.maxRequests = 100;
         this.sseClients = new Set();
         this.server = null;
+    }
+
+    setPublicUrl(url) {
+        this.publicUrl = url;
     }
 
     setLocalTargetPort(port) {
@@ -237,7 +242,29 @@ class TrafficInspector extends EventEmitter {
             return;
         }
 
-        // 5. Dashboard UI (HTML/CSS/JS)
+        // 5. GET /api/qr
+        if (url.pathname === '/api/qr') {
+            const QRCode = require('qrcode');
+            QRCode.toBuffer(this.publicUrl || 'https://reverseport.net', { width: 320, margin: 2 }, (err, buf) => {
+                if (err) {
+                    res.writeHead(500);
+                    res.end('Error');
+                    return;
+                }
+                res.writeHead(200, { 'Content-Type': 'image/png' });
+                res.end(buf);
+            });
+            return;
+        }
+
+        // 6. GET /api/info
+        if (url.pathname === '/api/info') {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ publicUrl: this.publicUrl, localPort: this.localTargetPort }));
+            return;
+        }
+
+        // 7. Dashboard UI (HTML/CSS/JS)
         if (url.pathname === '/' || url.pathname === '/index.html') {
             res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
             res.end(this._getDashboardHtml());
@@ -625,6 +652,7 @@ class TrafficInspector extends EventEmitter {
             <div class="badge-live"><div class="pulse-dot"></div> EN VIVO</div>
         </div>
         <div class="actions">
+            <button class="btn-action" onclick="openQrModal()" style="border-color: rgba(0, 240, 255, 0.4); color: #00f0ff; font-weight: 600;">📱 Probar en Móvil (QR)</button>
             <button class="btn-action" onclick="clearRequests()">🗑️ Limpiar Historial</button>
         </div>
     </header>
@@ -818,6 +846,28 @@ class TrafficInspector extends EventEmitter {
             fetch('/api/clear', { method: 'POST' });
         }
 
+        function openQrModal() {
+            fetch('/api/info').then(r => r.json()).then(data => {
+                const url = data.publicUrl || window.location.origin;
+                document.getElementById('qrUrlDisplay').textContent = url;
+                document.getElementById('qrImg').src = '/api/qr?t=' + Date.now();
+                document.getElementById('qrModal').style.display = 'flex';
+            }).catch(() => {
+                document.getElementById('qrModal').style.display = 'flex';
+            });
+        }
+
+        function closeQrModal() {
+            document.getElementById('qrModal').style.display = 'none';
+        }
+
+        function copyPublicUrl() {
+            const text = document.getElementById('qrUrlDisplay').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('¡URL pública copiada al portapapeles!');
+            });
+        }
+
         function escapeHtml(str) {
             if (!str) return '';
             return String(str)
@@ -827,6 +877,22 @@ class TrafficInspector extends EventEmitter {
                 .replace(/"/g, '&quot;');
         }
     </script>
+
+    <!-- Modal QR Móvil -->
+    <div id="qrModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: #0d1322; border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 16px; padding: 28px; max-width: 380px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.8);">
+            <div style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 8px;">📱 Vista Previa en tu Smartphone</div>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; line-height: 1.4;">Escanea este código con la cámara de tu móvil para verificar tu diseño responsivo bajo HTTPS:</p>
+            <div style="background: white; padding: 12px; border-radius: 12px; display: inline-block; box-shadow: 0 8px 24px rgba(0,240,255,0.25);">
+                <img id="qrImg" src="/api/qr" alt="QR Code" style="width: 220px; height: 220px; display: block;" />
+            </div>
+            <div id="qrUrlDisplay" style="margin-top: 16px; font-family: monospace; font-size: 0.8rem; color: #00f0ff; word-break: break-all; background: rgba(0,240,255,0.06); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(0,240,255,0.2);"></div>
+            <div style="margin-top: 18px; display: flex; gap: 10px; justify-content: center;">
+                <button class="btn-action" onclick="copyPublicUrl()" style="background: rgba(0,240,255,0.15); border-color: #00f0ff; color: #00f0ff; font-weight: 600;">Copiar URL</button>
+                <button class="btn-action" onclick="closeQrModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>`;
     }

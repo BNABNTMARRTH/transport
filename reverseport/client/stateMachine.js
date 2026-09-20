@@ -109,6 +109,9 @@ class ActiveTunnelState extends TunnelState {
             });
         } else {
             const publicUrl = `https://${subdomain}.${config.rootDomain}`;
+            if (inspector) {
+                inspector.setPublicUrl(publicUrl);
+            }
             const inspectorUrl = inspector ? `http://127.0.0.1:${inspector.port}` : null;
 
             this.context.emit('tunnel_ready', { publicUrl, subdomain, localPort, inspectorUrl });
