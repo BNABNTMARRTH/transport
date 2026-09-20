@@ -31,13 +31,16 @@
         :root {
             color-scheme: dark;
         }
-        html, body {
+
+        html,
+        body {
             background-color: var(--bg-base, #08090c) !important;
             color: var(--text-primary, #f8fafc);
             margin: 0;
             padding: 0;
             overflow-x: hidden;
         }
+
         .stage-3d-canvas-fixed {
             position: fixed;
             inset: 0;
@@ -182,8 +185,7 @@
                             <span class="term-session-badge">reversePort v2.4-session [active]</span>
                         </div>
                         <div class="terminal-tool-tabs">
-                            <button class="tab-btn active"
-                                onclick="switchTab('npx', 'npx rport-go 3000')">npx</button>
+                            <button class="tab-btn active" onclick="switchTab('npx', 'npx rport-go 3000')">npx</button>
                             <button class="tab-btn"
                                 onclick="switchTab('brew', 'brew install reverseport && rport 3000')">brew</button>
                             <button class="tab-btn"
@@ -247,7 +249,8 @@
                                 <div class="crypto-meta-flex">
                                     <span class="meta-chip"><span class="material-symbols-outlined">lock</span> TLS 1.3
                                         + ChaCha20</span>
-                                    <span class="meta-chip"><span class="material-symbols-outlined text-emerald">bolt</span>
+                                    <span class="meta-chip"><span
+                                            class="material-symbols-outlined text-emerald">bolt</span>
                                         Latencia: <strong class="text-emerald">11.8 ms</strong></span>
                                 </div>
                                 <div class="crypto-tags-flex">
@@ -547,7 +550,7 @@
                                 </tr>
                                 <!-- ngrok row -->
                                 <tr>
-                                    <td class="col-brand-name">ngrok</td>
+                                    <td class="col-brand-name">Otro A</td>
                                     <td class="col-latency">34.2 ms</td>
                                     <td class="col-bandwidth">Limitado por cuotas</td>
                                     <td class="col-inspector">Propietario</td>
@@ -556,7 +559,7 @@
                                 </tr>
                                 <!-- localtunnel row -->
                                 <tr>
-                                    <td class="col-brand-name">localtunnel</td>
+                                    <td class="col-brand-name">local</td>
                                     <td class="col-latency">62.8 ms</td>
                                     <td class="col-bandwidth">Inestable en picos</td>
                                     <td class="col-inspector text-muted">No incluido</td>
@@ -565,7 +568,7 @@
                                 </tr>
                                 <!-- cloudflared row -->
                                 <tr>
-                                    <td class="col-brand-name">cloudflared</td>
+                                    <td class="col-brand-name">Otro B</td>
                                     <td class="col-latency">21.5 ms</td>
                                     <td class="col-bandwidth">Requiere dominio &amp; DNS</td>
                                     <td class="col-inspector">Panel Remoto Cloud</td>

@@ -7,6 +7,7 @@ try {
     ProtocolAdapter = require('../shared/protocol').ProtocolAdapter;
 }
 const { TrafficInspector } = require('./inspector');
+const { DataConnectionPool } = require('./connectionPool');
 
 /**
  * Estados del Túnel (GoF Behavioral - State Pattern)
@@ -84,6 +85,7 @@ class ConnectingState extends TunnelState {
 class ActiveTunnelState extends TunnelState {
     constructor(context) {
         super(context);
+        this.context.pool.start();
         this._setupListeners();
     }
 
@@ -123,9 +125,12 @@ class ActiveTunnelState extends TunnelState {
     }
 
     handleDataConnection(requestId) {
-        const { config, localPort, inspector } = this.context;
+        const { config, localPort, inspector, pool } = this.context;
 
-        const remoteDataSocket = net.connect(config.remotePort, config.remoteHost, () => {
+        // Adquirir socket pre-warmed del Object Pool para 0ms handshake extra
+        const remoteDataSocket = pool ? pool.acquire() : net.connect(config.remotePort, config.remoteHost);
+
+        const setupBridge = () => {
             // Mandamos saludo data con framing
             const adapter = ProtocolAdapter.wrap(remoteDataSocket);
             adapter.send({ type: 'data', requestId });
@@ -199,10 +204,17 @@ Asegúrate de que tu aplicación o servidor web esté iniciado y escuchando en e
                     try { remoteDataSocket.destroy(); } catch (e) { }
                 }
             });
+
             localSocket.on('close', () => {
                 try { remoteDataSocket.destroy(); } catch (e) { }
             });
-        });
+        };
+
+        if (remoteDataSocket.readyState === 'open') {
+            setupBridge();
+        } else {
+            remoteDataSocket.once('connect', setupBridge);
+        }
 
         this.context.activeDataSockets.add(remoteDataSocket);
 
@@ -280,6 +292,9 @@ class TunnelStateMachine extends EventEmitter {
         this.activeDataSockets = new Set();
         this.reconnectAttempts = 0;
 
+        // Object Pool para conexiones de datos precalentadas (GoF Creational)
+        this.pool = new DataConnectionPool(this.config, 2);
+
         // Inspector de tráfico local HTTP (localhost:4040)
         this.inspector = this.isTcp ? null : new TrafficInspector(config.inspectorPort || 4040, localPort);
 
@@ -316,6 +331,9 @@ class TunnelStateMachine extends EventEmitter {
     }
 
     cleanup() {
+        if (this.pool) {
+            this.pool.destroy();
+        }
         if (this.inspector) {
             this.inspector.stop();
         }

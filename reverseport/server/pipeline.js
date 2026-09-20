@@ -141,6 +141,30 @@ class LandingPageRouteHandler extends BaseHandler {
 }
 
 /**
+ * AdaptiveTimeoutStrategy (GoF Behavioral - Strategy Pattern)
+ * Calcula el tiempo de espera óptimo según el tipo de recurso solicitado.
+ */
+class AdaptiveTimeoutStrategy {
+    static calculateTimeout(head) {
+        if (!head) return 15000;
+        const raw = head.toString('utf-8', 0, Math.min(head.length, 512));
+        
+        // Peticiones de assets estáticos o binarios grandes: 35s
+        if (/\.(js|css|glb|gltf|wasm|png|jpg|jpeg|webp|woff2|woff|mp4|svg)(\?|$)/i.test(raw)) {
+            return 35000;
+        }
+        
+        // Peticiones de subida pesada (multipart o chunked): 60s
+        if (/multipart\/form-data|Transfer-Encoding:\s*chunked/i.test(raw)) {
+            return 60000;
+        }
+
+        // Peticiones estándar API / Webhooks: 15s
+        return 15000;
+    }
+}
+
+/**
  * TunnelProxyHandler:
  * Enruta la petición entrante al canal de túnel correspondiente mediante el TunnelRegistry.
  */
@@ -166,11 +190,12 @@ class TunnelProxyHandler extends BaseHandler {
         }
 
         const requestId = uuidv4();
+        const effectiveTimeout = AdaptiveTimeoutStrategy.calculateTimeout(head);
 
         // Pausamos el socket para evitar perder datos del body hasta que se conecte el canal de datos
         reqSocket.pause();
 
-        this.registry.registerPendingRequest(requestId, reqSocket, head, this.timeoutMs, (timedOutSocket) => {
+        this.registry.registerPendingRequest(requestId, reqSocket, head, effectiveTimeout, (timedOutSocket) => {
             if (timedOutSocket && timedOutSocket.writable) {
                 timedOutSocket.write('HTTP/1.1 504 Gateway Timeout\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\n\r\n504 Gateway Timeout: El cliente local no respondió.');
                 timedOutSocket.destroy();

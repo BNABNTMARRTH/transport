@@ -10,6 +10,7 @@ const { StaticSiteFacade } = require('./staticFacade');
 const { createHttpPipeline } = require('./pipeline');
 const { authManager } = require('./auth');
 const { TcpTunnelHub } = require('./tcpHub');
+const { SmartSocketBridge } = require('./socketBridge');
 
 // --- CONFIGURACIÓN ---
 const HTTP_PORT = parseInt(process.env.HTTP_PORT) || 80;
@@ -125,19 +126,10 @@ const tunnelServer = net.createServer((socket) => {
                     const { reqSocket, head } = pending;
 
                     // Una vez identificado como socket de datos, destruimos el adapter
-                    // para permitir raw stream piping transparente de alta velocidad
+                    // y delegamos la gestión del flujo y ciclo de vida al SmartSocketBridge (Proxy GoF)
                     adapter.destroy();
 
-                    reqSocket.pipe(socket).pipe(reqSocket);
-
-                    if (head && head.length > 0) {
-                        socket.write(head);
-                    }
-
-                    reqSocket.resume();
-
-                    reqSocket.on('error', () => { try { socket.destroy(); } catch (e) { } });
-                    socket.on('error', () => { try { reqSocket.destroy(); } catch (e) { } });
+                    SmartSocketBridge.link(reqSocket, socket, head, requestId);
                 } else {
                     socket.destroy();
                 }
