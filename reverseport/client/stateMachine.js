@@ -1,6 +1,11 @@
 const net = require('net');
 const { EventEmitter } = require('events');
-const { ProtocolAdapter } = require('../shared/protocol');
+let ProtocolAdapter;
+try {
+    ProtocolAdapter = require('./protocol').ProtocolAdapter;
+} catch (e) {
+    ProtocolAdapter = require('../shared/protocol').ProtocolAdapter;
+}
 const { TrafficInspector } = require('./inspector');
 
 /**
