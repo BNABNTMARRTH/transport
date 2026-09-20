@@ -152,8 +152,44 @@ class ActiveTunnelState extends TunnelState {
                 remoteDataSocket.pipe(localSocket).pipe(remoteDataSocket);
             });
 
-            localSocket.on('error', () => {
-                try { remoteDataSocket.destroy(); } catch (e) { }
+            localSocket.on('error', (err) => {
+                this.context.log('warn', `Conexión rechazada en puerto local ${localPort} (${err.code || err.message}). ¿Está encendido tu servidor?`);
+                if (!this.context.isTcp && remoteDataSocket.writable) {
+                    const errorHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>502 Bad Gateway // ReversePort</title>
+<style>
+:root { color-scheme: dark; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #08090c; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 24px; box-sizing: border-box; }
+.card { background: rgba(14, 18, 26, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 36px 28px; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+.badge { display: inline-block; background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); padding: 4px 14px; border-radius: 99px; font-family: monospace; font-size: 13px; font-weight: 600; margin-bottom: 18px; }
+h1 { margin: 0 0 12px; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+p { color: #94a3b8; line-height: 1.6; font-size: 14px; margin: 0 0 22px; }
+.tip-box { background: rgba(0, 240, 255, 0.06); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 10px; padding: 14px; font-size: 13px; color: #38bdf8; font-family: monospace; text-align: left; }
+.tip-title { font-weight: 600; margin-bottom: 4px; color: #00f0ff; }
+</style>
+</head>
+<body>
+<div class="card">
+<div class="badge">502 Bad Gateway</div>
+<h1>No se pudo conectar al puerto ${localPort}</h1>
+<p>El túnel de ReversePort está activo y funcionando en la nube, pero tu servidor local en <strong>127.0.0.1:${localPort}</strong> no está respondiendo (<code>${err.code || 'ECONNREFUSED'}</code>).</p>
+<div class="tip-box">
+<div class="tip-title">💡 Solución rápida:</div>
+Asegúrate de que tu aplicación o servidor web esté iniciado y escuchando en el puerto <strong>${localPort}</strong>.
+</div>
+</div>
+</body>
+</html>`;
+                    const httpResponse = `HTTP/1.1 502 Bad Gateway\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: ${Buffer.byteLength(errorHtml)}\r\nConnection: close\r\n\r\n${errorHtml}`;
+                    remoteDataSocket.write(httpResponse);
+                    remoteDataSocket.end();
+                } else {
+                    try { remoteDataSocket.destroy(); } catch (e) { }
+                }
             });
             localSocket.on('close', () => {
                 try { remoteDataSocket.destroy(); } catch (e) { }
