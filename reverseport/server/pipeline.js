@@ -133,7 +133,7 @@ class LandingPageRouteHandler extends BaseHandler {
 
         const isRoot = checkIsRoot(host, subdomain, this.rootDomain);
         if (isRoot) {
-            this.staticFacade.serveFile(res, req.url);
+            this.staticFacade.serveFile(res, req.url, req);
             return true;
         }
         return super.handle(context);

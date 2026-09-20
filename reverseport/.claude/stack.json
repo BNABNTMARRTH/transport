@@ -1,0 +1,89 @@
+{
+  "$schema": "./stack.schema.json",
+  "$doc": "The stack profile. Every path, package and command in this kit is read from here. Reference: obsidian/architecture/stack-profile.md",
+
+  "adapted": true,
+  "adaptedAt": "2026-09-19",
+
+  "project": {
+    "name": "reverseport",
+    "kind": "product-site"
+  },
+
+  "framework": {
+    "id": "vanilla",
+    "name": "Vanilla HTML5 / Modern ESM & Node.js",
+    "version": "ES2022",
+    "renderModel": "ssg"
+  },
+
+  "language": "js",
+  "packageManager": "npm",
+
+  "paths": {
+    "source": "website",
+    "routes": "website",
+    "views": "website",
+    "components": "website",
+    "styles": "website/style.css",
+    "assets": "website/assets",
+    "staticRoot": "website",
+    "server": "server",
+    "env": null,
+    "protected": [],
+    "routeEntryGlob": ["*.html"]
+  },
+
+  "extensions": {
+    "component": [".html", ".js"],
+    "style": [".css"]
+  },
+
+  "bindings": {
+    "styling": "plain-css",
+    "motion": "three",
+    "textMotion": "recipe",
+    "smoothScroll": null,
+    "state": "native-events",
+    "validation": null,
+    "image": "native",
+    "link": "native",
+    "router": null,
+    "metadata": "manual",
+    "envPublicPrefix": null
+  },
+
+  "capabilities": {
+    "ssr": false,
+    "serverComponents": false,
+    "fileRouting": false,
+    "apiRoutes": true,
+    "imageOptimization": false,
+    "metadataApi": false,
+    "islands": false
+  },
+
+  "conventions": {
+    "routesDelegateToViews": false,
+    "namedExports": true,
+    "serverFirst": false,
+    "tokenTiers": true
+  },
+
+  "commands": {
+    "install": "npm install",
+    "dev": "node server/index.js",
+    "build": null,
+    "start": "npm start",
+    "lint": "node -c website/octopus3d.js website/app.js client/index.js server/index.js",
+    "typecheck": null,
+    "test": "npm test"
+  },
+
+  "notes": [
+    "ReversePort is a lightweight reverse tunnel CLI and hub with a 3D WebGL cyber octopus landing page.",
+    "Frontend is structured under website/ with Vanilla HTML5, custom CSS design tokens, and Three.js 0.162.0 ESM.",
+    "Backend & transport engine is in client/, server/, and shared/ with GoF patterns and raw TCP tunnels.",
+    "3D model pulbo_monstruo.glb is served from website/assets/ and managed by website/octopus3d.js."
+  ]
+}

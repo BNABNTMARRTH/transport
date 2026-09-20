@@ -19,18 +19,24 @@ class StaticSiteFacade {
             '.png': 'image/png',
             '.jpg': 'image/jpeg',
             '.jpeg': 'image/jpeg',
+            '.webp': 'image/webp',
             '.ico': 'image/x-icon',
             '.txt': 'text/plain; charset=utf-8',
             '.glb': 'model/gltf-binary',
-            '.gltf': 'model/gltf+json'
+            '.gltf': 'model/gltf+json',
+            '.wasm': 'application/wasm',
+            '.woff2': 'font/woff2',
+            '.woff': 'font/woff'
         };
     }
 
     /**
-     * Sirve un archivo estático general con protección contra path traversal.
+     * Sirve un archivo estático general con protección contra path traversal,
+     * encabezados de caché modernos, ETag (304 Not Modified) y streaming reactivo.
      */
-    serveFile(res, relativeUrl) {
+    serveFile(res, relativeUrl, req = null) {
         let cleanUrl = (relativeUrl === '/' || !relativeUrl) ? 'index.html' : relativeUrl;
+        const hasVersionQuery = cleanUrl.includes('?');
         // Quitar query params si existen
         cleanUrl = cleanUrl.split('?')[0];
 
@@ -52,20 +58,46 @@ class StaticSiteFacade {
 
             const ext = path.extname(targetPath).toLowerCase();
             const contentType = this.mimeTypes[ext] || 'application/octet-stream';
+            const etag = `W/"${stats.size.toString(16)}-${stats.mtime.getTime().toString(16)}"`;
 
-            fs.readFile(targetPath, (readErr, content) => {
-                if (readErr) {
-                    res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
-                    res.end('500 Internal Server Error');
-                    return;
-                }
-                res.writeHead(200, {
-                    'Content-Type': contentType,
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
+            // Validación de caché condicional (304 Not Modified)
+            if (req && req.headers && req.headers['if-none-match'] === etag) {
+                res.writeHead(304, {
+                    'ETag': etag,
+                    'Cache-Control': ext === '.html' ? 'no-cache, must-revalidate' : 'public, max-age=604800'
                 });
-                res.end(content);
+                res.end();
+                return;
+            }
+
+            // Política de caché según el tipo de recurso
+            let cacheControl = 'public, max-age=86400';
+            if (ext === '.html') {
+                cacheControl = 'no-cache, must-revalidate';
+            } else if (['.glb', '.wasm', '.png', '.jpg', '.webp', '.woff2', '.woff', '.svg'].includes(ext)) {
+                cacheControl = 'public, max-age=2592000, immutable'; // 30 días para binarios y 3D
+            } else if (hasVersionQuery) {
+                cacheControl = 'public, max-age=604800, immutable'; // Versiones cacheadas
+            }
+
+            const headers = {
+                'Content-Type': contentType,
+                'Content-Length': stats.size,
+                'ETag': etag,
+                'Last-Modified': stats.mtime.toUTCString(),
+                'Cache-Control': cacheControl,
+                'Accept-Ranges': 'bytes',
+                'Access-Control-Allow-Origin': '*'
+            };
+
+            res.writeHead(200, headers);
+            const stream = fs.createReadStream(targetPath);
+            stream.pipe(res);
+            stream.on('error', () => {
+                if (!res.headersSent) {
+                    res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+                    res.end('500 Stream Error');
+                }
             });
         });
     }
