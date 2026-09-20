@@ -68,7 +68,9 @@ class ProtocolAdapter extends EventEmitter {
     }
 
     _onError(err) {
-        this.emit('error', err);
+        if (this.listenerCount('error') > 0) {
+            this.emit('error', err);
+        }
     }
 
     _onClose(hadError) {

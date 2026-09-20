@@ -238,6 +238,13 @@ class ReversePortCLI {
 }
 
 if (require.main === module) {
+    process.on('uncaughtException', (err) => {
+        if (err && (err.code === 'ECONNRESET' || err.code === 'EPIPE' || err.code === 'ETIMEDOUT')) {
+            return; // Red transitoria manejada por la máquina de estados de reconexión
+        }
+        console.error(`${COLORS.red}[FATAL] ${err.message}${COLORS.reset}`);
+    });
+
     const cli = new ReversePortCLI();
     cli.run().catch(err => {
         console.error(`${COLORS.red}[FATAL] ${err.message}${COLORS.reset}`);

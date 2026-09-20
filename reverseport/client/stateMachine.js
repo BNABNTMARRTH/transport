@@ -39,6 +39,9 @@ class ConnectingState extends TunnelState {
         const socket = net.connect(config.remotePort, config.remoteHost, () => {
             this.context.controlSocket = socket;
             this.context.controlAdapter = ProtocolAdapter.wrap(socket);
+            this.context.controlAdapter.on('error', (err) => {
+                this.context.log('warn', `Canal de control reset: ${err.message}`);
+            });
 
             if (this.context.isTcp) {
                 this.context.controlAdapter.send({
