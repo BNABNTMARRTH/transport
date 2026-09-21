@@ -1,16 +1,19 @@
 /**
  * TunnelRegistry (GoF Creational/Structural - Singleton / Repository Pattern)
  * 
- * Centraliza la gestión de estado mutable del servidor de túneles:
- * - Canales de Control persistentes por subdominio.
- * - Peticiones pendientes de vinculación con canales de datos efímeros.
- * - Limpieza determinista de timers y prevención de fugas de memoria (memory leaks).
+ * Centraliza la gestión de clientes y túneles activos:
+ * - Instancias ClientTunnel (que gestionan TunnelAgent y pool de sockets).
+ * - Canales de Control persistentes por subdominio con Heartbeat.
+ * - Peticiones pendientes de vinculación TCP pura.
  */
 class TunnelRegistry {
     constructor() {
         if (TunnelRegistry.instance) {
             return TunnelRegistry.instance;
         }
+
+        // Map<subdomain: string, clientTunnel: ClientTunnel>
+        this.clients = new Map();
 
         // Map<subdomain: string, socket: net.Socket>
         this.controlConnections = new Map();
@@ -22,22 +25,46 @@ class TunnelRegistry {
     }
 
     /**
-     * Registra una conexión de control para un subdominio.
-     * Si ya existía un socket anterior, lo destruye de forma segura.
+     * Registra un cliente túnel activo (con su respectivo TunnelAgent).
      */
+    registerClient(subdomain, clientTunnel) {
+        const normalized = subdomain.toLowerCase().trim();
+        const existing = this.clients.get(normalized);
+        if (existing && existing !== clientTunnel) {
+            try { existing.destroy(); } catch (e) { }
+        }
+        this.clients.set(normalized, clientTunnel);
+    }
+
+    getClient(subdomain) {
+        if (!subdomain) return null;
+        const normalized = subdomain.toLowerCase().trim();
+        return this.clients.get(normalized) || null;
+    }
+
+    removeClient(subdomain, clientTunnel = null) {
+        const normalized = subdomain.toLowerCase().trim();
+        const current = this.clients.get(normalized);
+        if (!clientTunnel || current === clientTunnel) {
+            if (current) {
+                try { current.destroy(); } catch (e) { }
+            }
+            this.clients.delete(normalized);
+            this.controlConnections.delete(normalized);
+            return true;
+        }
+        return false;
+    }
+
     registerControl(subdomain, socket) {
         const normalized = subdomain.toLowerCase().trim();
         const existing = this.controlConnections.get(normalized);
         if (existing && existing !== socket) {
             try { existing.destroy(); } catch (e) { }
         }
-
         this.controlConnections.set(normalized, socket);
     }
 
-    /**
-     * Obtiene el socket de control activo para un subdominio.
-     */
     getControl(subdomain) {
         const normalized = subdomain.toLowerCase().trim();
         const socket = this.controlConnections.get(normalized);
@@ -47,9 +74,6 @@ class TunnelRegistry {
         return null;
     }
 
-    /**
-     * Desregistra un socket de control si coincide con el registrado.
-     */
     removeControl(subdomain, socket = null) {
         const normalized = subdomain.toLowerCase().trim();
         const current = this.controlConnections.get(normalized);
@@ -60,11 +84,7 @@ class TunnelRegistry {
         return false;
     }
 
-    /**
-     * Registra una petición HTTP entrante pendiente de emparejamiento con el túnel.
-     */
     registerPendingRequest(requestId, reqSocket, head, timeoutMs = 15000, onTimeout = null) {
-        // Limpiamos si ya existía una colisión de ID
         this.cancelPendingRequest(requestId);
 
         const timer = setTimeout(() => {
@@ -83,10 +103,6 @@ class TunnelRegistry {
         this.pendingRequests.set(requestId, { reqSocket, head, timer });
     }
 
-    /**
-     * Extrae y remueve una petición pendiente por su requestId (operación atómica).
-     * Cancela el temporizador para evitar ejecuciones posteriores.
-     */
     takePendingRequest(requestId) {
         const entry = this.pendingRequests.get(requestId);
         if (!entry) return null;
@@ -96,9 +112,6 @@ class TunnelRegistry {
         return { reqSocket: entry.reqSocket, head: entry.head };
     }
 
-    /**
-     * Cancela y destruye una petición pendiente.
-     */
     cancelPendingRequest(requestId) {
         const entry = this.pendingRequests.get(requestId);
         if (!entry) return false;
@@ -111,20 +124,15 @@ class TunnelRegistry {
         return true;
     }
 
-    /**
-     * Retorna la lista de subdominios activos actualmente conectados.
-     */
     getActiveSubdomains() {
-        return Array.from(this.controlConnections.keys());
+        return Array.from(this.clients.keys());
     }
 
-    /**
-     * Reinicia y limpia todas las conexiones (útil para pruebas y reinicios limpios).
-     */
     clear() {
-        for (const [subdomain, socket] of this.controlConnections.entries()) {
-            try { socket.destroy(); } catch (e) { }
+        for (const [subdomain, client] of this.clients.entries()) {
+            try { client.destroy(); } catch (e) { }
         }
+        this.clients.clear();
         this.controlConnections.clear();
 
         for (const [id, entry] of this.pendingRequests.entries()) {
@@ -135,7 +143,6 @@ class TunnelRegistry {
     }
 }
 
-// Exportamos instancia singleton
 const registryInstance = new TunnelRegistry();
 
 module.exports = {

@@ -7,10 +7,10 @@ try {
     ProtocolAdapter = require('../shared/protocol').ProtocolAdapter;
 }
 const { TrafficInspector } = require('./inspector');
-const { DataConnectionPool } = require('./connectionPool');
+const { TunnelCluster } = require('./tunnelCluster');
 
 /**
- * Estados del Túnel (GoF Behavioral - State Pattern)
+ * Estados del Túnel (GoF Behavioral - State Pattern + localtunnel/bore Engine)
  */
 class TunnelState {
     constructor(context) {
@@ -19,7 +19,6 @@ class TunnelState {
 
     connect() { }
     disconnect() { }
-    handleDataConnection(requestId) { }
     getName() { return 'Unknown'; }
 }
 
@@ -40,6 +39,7 @@ class ConnectingState extends TunnelState {
         const socket = net.connect(config.remotePort, config.remoteHost, () => {
             this.context.controlSocket = socket;
             this.context.controlAdapter = ProtocolAdapter.wrap(socket);
+
             this.context.controlAdapter.on('error', (err) => {
                 this.context.log('warn', `Canal de control reset: ${err.message}`);
             });
@@ -51,16 +51,27 @@ class ConnectingState extends TunnelState {
                     preferredPort: this.context.preferredPort,
                     apiKey: config.apiKey
                 });
+                this.context.transitionTo(new ActiveTunnelState(this.context));
             } else {
-                // Enviar saludo de control con delimitador
+                // Enviar saludo de control HTTP con delimitador estricto
                 this.context.controlAdapter.send({
                     type: 'control',
                     subdomain,
                     apiKey: config.apiKey
                 });
-            }
 
-            this.context.transitionTo(new ActiveTunnelState(this.context));
+                this.context.controlAdapter.once('message', (msg) => {
+                    if (msg.type === 'control_ok') {
+                        if (msg.rootDomain) {
+                            this.context.config.rootDomain = msg.rootDomain;
+                        }
+                        this.context.transitionTo(new ActiveTunnelState(this.context));
+                    } else if (msg.type === 'error') {
+                        this.context.log('error', `Rechazado por el servidor: ${msg.message}`);
+                        this.context.transitionTo(new TerminatedState(this.context));
+                    }
+                });
+            }
         });
 
         socket.on('error', (err) => {
@@ -85,7 +96,7 @@ class ConnectingState extends TunnelState {
 class ActiveTunnelState extends TunnelState {
     constructor(context) {
         super(context);
-        this.context.pool.start();
+        this.cluster = null;
         this._setupListeners();
     }
 
@@ -100,8 +111,6 @@ class ActiveTunnelState extends TunnelState {
                         publicHost: msg.publicHost || config.remoteHost,
                         localPort
                     });
-                } else if (msg.type === 'create_connection') {
-                    this.handleDataConnection(msg.requestId);
                 } else if (msg.type === 'error') {
                     this.context.log('error', `Mensaje del servidor: ${msg.message}`);
                     this.disconnect();
@@ -116,9 +125,21 @@ class ActiveTunnelState extends TunnelState {
 
             this.context.emit('tunnel_ready', { publicUrl, subdomain, localPort, inspectorUrl });
 
+            // Iniciar cluster de sockets en standby (Molde localtunnel: 0ms latencia)
+            this.cluster = new TunnelCluster({
+                remoteHost: config.remoteHost,
+                remotePort: config.remotePort,
+                subdomain,
+                localPort,
+                maxSockets: 10,
+                inspector
+            });
+            this.cluster.start();
+
+            // Heartbeat Keep-Alive (Molde bore)
             controlAdapter.on('message', (msg) => {
-                if (msg.type === 'create_connection') {
-                    this.handleDataConnection(msg.requestId);
+                if (msg.type === 'heartbeat') {
+                    controlAdapter.send({ type: 'heartbeat_ack' });
                 } else if (msg.type === 'error') {
                     this.context.log('error', `Mensaje del servidor: ${msg.message}`);
                     this.disconnect();
@@ -127,110 +148,11 @@ class ActiveTunnelState extends TunnelState {
         }
     }
 
-    handleDataConnection(requestId) {
-        const { config, localPort, inspector, pool } = this.context;
-
-        // Adquirir socket pre-warmed del Object Pool para 0ms handshake extra
-        const remoteDataSocket = pool ? pool.acquire() : net.connect(config.remotePort, config.remoteHost);
-
-        const setupBridge = () => {
-            // Mandamos saludo data con framing
-            const adapter = ProtocolAdapter.wrap(remoteDataSocket);
-            adapter.send({ type: 'data', requestId });
-            adapter.destroy(); // Pasamos a raw piping una vez enviado el header
-
-            const localSocket = net.connect(localPort, '127.0.0.1', () => {
-                let reqBuffer = Buffer.alloc(0);
-                let resBuffer = Buffer.alloc(0);
-
-                if (inspector) {
-                    remoteDataSocket.on('data', (chunk) => {
-                        if (reqBuffer.length < 65536) {
-                            const isFirst = reqBuffer.length === 0;
-                            reqBuffer = Buffer.concat([reqBuffer, chunk]);
-                            if (isFirst) {
-                                inspector.captureRequest(requestId, reqBuffer);
-                            }
-                        }
-                    });
-
-                    localSocket.on('data', (chunk) => {
-                        if (resBuffer.length < 65536) {
-                            const isFirst = resBuffer.length === 0;
-                            resBuffer = Buffer.concat([resBuffer, chunk]);
-                            if (isFirst) {
-                                inspector.captureResponse(requestId, resBuffer);
-                            }
-                        }
-                    });
-                }
-
-                remoteDataSocket.pipe(localSocket).pipe(remoteDataSocket);
-            });
-
-            localSocket.on('error', (err) => {
-                this.context.log('warn', `Conexión rechazada en puerto local ${localPort} (${err.code || err.message}). ¿Está encendido tu servidor?`);
-                if (!this.context.isTcp && remoteDataSocket.writable) {
-                    const errorHtml = `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>502 Bad Gateway // ReversePort</title>
-<style>
-:root { color-scheme: dark; }
-body { font-family: system-ui, -apple-system, sans-serif; background: #08090c; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 24px; box-sizing: border-box; }
-.card { background: rgba(14, 18, 26, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 36px 28px; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
-.badge { display: inline-block; background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); padding: 4px 14px; border-radius: 99px; font-family: monospace; font-size: 13px; font-weight: 600; margin-bottom: 18px; }
-h1 { margin: 0 0 12px; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-p { color: #94a3b8; line-height: 1.6; font-size: 14px; margin: 0 0 22px; }
-.tip-box { background: rgba(0, 240, 255, 0.06); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 10px; padding: 14px; font-size: 13px; color: #38bdf8; font-family: monospace; text-align: left; }
-.tip-title { font-weight: 600; margin-bottom: 4px; color: #00f0ff; }
-</style>
-</head>
-<body>
-<div class="card">
-<div class="badge">502 Bad Gateway</div>
-<h1>No se pudo conectar al puerto ${localPort}</h1>
-<p>El túnel de ReversePort está activo y funcionando en la nube, pero tu servidor local en <strong>127.0.0.1:${localPort}</strong> no está respondiendo (<code>${err.code || 'ECONNREFUSED'}</code>).</p>
-<div class="tip-box">
-<div class="tip-title">💡 Solución rápida:</div>
-Asegúrate de que tu aplicación o servidor web esté iniciado y escuchando en el puerto <strong>${localPort}</strong>.
-</div>
-</div>
-</body>
-</html>`;
-                    const httpResponse = `HTTP/1.1 502 Bad Gateway\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: ${Buffer.byteLength(errorHtml)}\r\nConnection: close\r\n\r\n${errorHtml}`;
-                    remoteDataSocket.write(httpResponse);
-                    remoteDataSocket.end();
-                } else {
-                    try { remoteDataSocket.destroy(); } catch (e) { }
-                }
-            });
-
-            localSocket.on('close', () => {
-                try { remoteDataSocket.destroy(); } catch (e) { }
-            });
-        };
-
-        if (remoteDataSocket.readyState === 'open') {
-            setupBridge();
-        } else {
-            remoteDataSocket.once('connect', setupBridge);
-        }
-
-        this.context.activeDataSockets.add(remoteDataSocket);
-
-        remoteDataSocket.on('close', () => {
-            this.context.activeDataSockets.delete(remoteDataSocket);
-        });
-
-        remoteDataSocket.on('error', () => {
-            this.context.activeDataSockets.delete(remoteDataSocket);
-        });
-    }
-
     disconnect() {
+        if (this.cluster) {
+            this.cluster.close();
+            this.cluster = null;
+        }
         this.context.transitionTo(new TerminatedState(this.context));
     }
 
@@ -292,11 +214,7 @@ class TunnelStateMachine extends EventEmitter {
 
         this.controlSocket = null;
         this.controlAdapter = null;
-        this.activeDataSockets = new Set();
         this.reconnectAttempts = 0;
-
-        // Object Pool para conexiones de datos precalentadas (GoF Creational)
-        this.pool = new DataConnectionPool(this.config, 2);
 
         // Inspector de tráfico local HTTP (localhost:4040)
         this.inspector = this.isTcp ? null : new TrafficInspector(config.inspectorPort || 4040, localPort);
@@ -334,9 +252,6 @@ class TunnelStateMachine extends EventEmitter {
     }
 
     cleanup() {
-        if (this.pool) {
-            this.pool.destroy();
-        }
         if (this.inspector) {
             this.inspector.stop();
         }
@@ -348,11 +263,6 @@ class TunnelStateMachine extends EventEmitter {
             try { this.controlSocket.destroy(); } catch (e) { }
             this.controlSocket = null;
         }
-
-        for (const dataSocket of this.activeDataSockets) {
-            try { dataSocket.destroy(); } catch (e) { }
-        }
-        this.activeDataSockets.clear();
     }
 }
 
