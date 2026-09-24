@@ -238,24 +238,32 @@ tunnelServer.listen(TUNNEL_PORT, () => {
 
 // --- DISPATCHER CENTRAL DE PETICIONES HTTP/HTTPS ---
 function handleHttpRequest(req, res) {
-    const { host, subdomain } = extractHostAndSubdomain(req.headers.host);
+    try {
+        const { host, subdomain } = extractHostAndSubdomain(req.headers.host);
 
-    // 1. Si es el dominio principal, servir landing page bioluminiscente
-    if (isRootHost(host, subdomain)) {
-        staticFacade.serve(req, res);
-        return;
+        // 1. Si es el dominio principal, servir landing page bioluminiscente
+        if (isRootHost(host, subdomain)) {
+            staticFacade.serve(req, res);
+            return;
+        }
+
+        // 2. Si es un subdominio de túnel, buscar el cliente registrado
+        const client = registry.getClient(subdomain);
+        if (client) {
+            client.handleRequest(req, res);
+            return;
+        }
+
+        // 3. Subdominio no encontrado / offline
+        res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(renderNotFoundHtml(subdomain));
+    } catch (err) {
+        console.error('[HTTP Handler Error]', err);
+        if (!res.headersSent) {
+            res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end('500 Internal Server Error');
+        }
     }
-
-    // 2. Si es un subdominio de túnel, buscar el cliente registrado
-    const client = registry.getClient(subdomain);
-    if (client) {
-        client.handleRequest(req, res);
-        return;
-    }
-
-    // 3. Subdominio no encontrado / offline
-    res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(renderNotFoundHtml(subdomain));
 }
 
 function handleHttpUpgrade(req, socket, head) {

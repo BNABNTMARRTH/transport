@@ -31,6 +31,20 @@ class StaticSiteFacade {
     }
 
     /**
+     * Facade method principal para responder a una petición HTTP (req, res).
+     */
+    serve(req, res) {
+        const url = (req.url || '/').split('?')[0];
+        if (url === '/install.sh') {
+            return this.serveInstaller(res);
+        }
+        if (url === '/security' || url === '/security.html') {
+            return this.serveSecurityDocs(res);
+        }
+        return this.serveFile(res, url, req);
+    }
+
+    /**
      * Sirve un archivo estático general con protección contra path traversal,
      * encabezados de caché modernos, ETag (304 Not Modified) y streaming reactivo.
      */
