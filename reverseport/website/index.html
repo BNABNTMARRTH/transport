@@ -63,14 +63,14 @@
         <!-- Loader Overlay Discreto -->
         <div id="octopus-loader-badge" class="loader-3d-overlay">
             <div class="spinner-neon"></div>
-            <span id="octopus-load-text">Invocando Guardián Abisal 3D...</span>
+            <span id="octopus-load-text">Cargando interfaz 3D...</span>
             <div class="progress-bar-bg">
                 <div id="octopus-load-progress" class="progress-bar-fill"></div>
             </div>
         </div>
     </div>
 
-    <!-- Barra Superior de Navegación (Header sin logo, estilo exacto de texto) -->
+    <!-- Barra Superior de Navegación -->
     <header class="navbar">
         <div class="nav-container">
             <a href="/" class="brand-link">
@@ -81,19 +81,18 @@
             <nav class="nav-links">
                 <a href="#terminal-station" class="nav-item">Terminal CLI</a>
                 <a href="#inspector-section" class="nav-item">Inspector 4040</a>
-                <a href="#benchmark-station" class="nav-item">Benchmark</a>
+                <a href="#benchmark-station" class="nav-item">Comparativa</a>
                 <a href="security.html" class="nav-item">Seguridad</a>
                 <a href="https://github.com/BNABNTMARRTH/transport" target="_blank" rel="noopener"
                     class="nav-item github-link">
-                    <span class="material-symbols-outlined nav-symbol">star</span>
+                    <span class="material-symbols-outlined nav-symbol">code</span>
                     <span>GitHub</span>
-                    <span class="star-count">14.2k</span>
                 </a>
             </nav>
 
             <div class="nav-cta">
                 <button class="btn-copy-quick" onclick="copyCliCommand()">
-                    <code>npx rport-go 3000</code>
+                    <code>npx pulpemerge 3000</code>
                     <span class="material-symbols-outlined copy-icon">content_copy</span>
                 </button>
             </div>
@@ -112,7 +111,7 @@
                         <span class="pulse-dot"></span>
                         <span class="pulse-ring"></span>
                     </span>
-                    <span class="live-pill-text">Red Abisal Operativa · v2.4 GoF</span>
+                    <span class="live-pill-text">Red Global Activa · Open Source</span>
                 </div>
 
                 <!-- Título Principal -->
@@ -132,7 +131,7 @@
                 <div class="hero-command-wrap">
                     <div class="command-box" onclick="copyCliCommand()">
                         <span class="prompt-symbol">$</span>
-                        <code class="command-text" id="cmd-text">npx rport-go 3000</code>
+                        <code class="command-text" id="cmd-text">npx pulpemerge 3000</code>
                         <button class="btn-copy-trigger" id="copy-btn" title="Copiar al portapapeles">
                             <span class="material-symbols-outlined" id="copy-icon">content_copy</span>
                             <span id="copy-label">Copiar</span>
@@ -141,14 +140,13 @@
 
                     <div class="hero-actions-row">
                         <a class="btn-explore-secondary" href="#inspector-section">
-                            <span class="material-symbols-outlined">open_in_browser</span>
+                            <span class="material-symbols-outlined">visibility</span>
                             <span>Explorar Inspector 4040</span>
                         </a>
-                        <button class="btn-attack-hero"
-                            onclick="window.octopusEngine && window.octopusEngine.triggerAttack()">
-                            <span class="material-symbols-outlined">bolt</span>
-                            <span>Provocar Pulso Abisal</span>
-                        </button>
+                        <a class="btn-attack-hero" href="#terminal-station">
+                            <span class="material-symbols-outlined">terminal</span>
+                            <span>Ver Terminal &amp; QR</span>
+                        </a>
                     </div>
                 </div>
 
@@ -162,7 +160,7 @@
 
                 <!-- Indicador de Scroll Dinámico -->
                 <div class="scroll-down-hint">
-                    <span class="hint-text">Desplaza para sumergirte en el abismo</span>
+                    <span class="hint-text">Desplaza para conocer las capacidades</span>
                     <div class="scroll-mouse-icon">
                         <div class="mouse-wheel"></div>
                     </div>
@@ -182,16 +180,16 @@
                             <span class="dot red"></span>
                             <span class="dot yellow"></span>
                             <span class="dot green"></span>
-                            <span class="term-session-badge">reversePort v2.4-session [active]</span>
+                            <span class="term-session-badge">reversePort session [active]</span>
                         </div>
                         <div class="terminal-tool-tabs">
-                            <button class="tab-btn active" onclick="switchTab('npx', 'npx rport-go 3000')">npx</button>
+                            <button class="tab-btn active" onclick="switchTab('npx', 'npx pulpemerge 3000')">npx</button>
                             <button class="tab-btn"
-                                onclick="switchTab('brew', 'brew install reverseport && rport 3000')">brew</button>
+                                onclick="switchTab('reverse', 'npx reverse 3000')">reverse</button>
                             <button class="tab-btn"
-                                onclick="switchTab('curl', 'curl -fsSL https://rport.sh/install | sh')">curl</button>
+                                onclick="switchTab('tcp', 'npx reverse --tcp 5432')">tcp</button>
                             <button class="tab-btn"
-                                onclick="switchTab('docker', 'docker run --net=host rport/reverseport:latest 3000')">docker</button>
+                                onclick="switchTab('docker', 'docker run --net=host reverseport/pulpemerge 3000')">docker</button>
                         </div>
                     </div>
 
@@ -201,7 +199,7 @@
                         <div class="prompt-header">
                             <span class="term-user">dev@workstation</span><span class="term-colon">:</span><span
                                 class="term-dir">~/api-service</span><span class="term-colon">$</span>
-                            <span class="term-active-cmd" id="active-terminal-cmd">npx rport-go 3000</span>
+                            <span class="term-active-cmd" id="active-terminal-cmd">npx pulpemerge 3000</span>
                         </div>
 
                         <!-- Live Session Feed -->
@@ -209,9 +207,9 @@
                             <div class="feed-status-row">
                                 <div class="feed-status-badge">
                                     <span class="dot-live"></span>
-                                    <span class="status-name">Tunnel Online (abyss-node-iad02)</span>
+                                    <span class="status-name">Tunnel Online (us-east)</span>
                                 </div>
-                                <span class="feed-meta">Uptime: 00:42:19 · Packets: 18,402</span>
+                                <span class="feed-meta">Status: 200 OK · Handshake TLS 1.3</span>
                             </div>
 
                             <!-- Route Mapping Breakdown -->
@@ -219,9 +217,9 @@
                                 <div class="route-card">
                                     <span class="route-label">TÚNEL PÚBLICO HTTPS</span>
                                     <div class="route-val-row">
-                                        <a href="https://abyss-7821.reverseport.net" target="_blank"
+                                        <a href="https://demo-service.reverseport.net" target="_blank"
                                             class="route-url-link">
-                                            https://abyss-7821.reverseport.net
+                                            https://demo-service.reverseport.net
                                         </a>
                                         <span class="material-symbols-outlined icon-link">open_in_new</span>
                                     </div>
@@ -290,11 +288,11 @@
                                 <div class="qr-text-block">
                                     <span class="qr-heading">
                                         <span class="material-symbols-outlined text-emerald">qr_code_scanner</span>
-                                        Escaneo Rápido Móvil
+                                        Auditoría Móvil Instantánea
                                     </span>
                                     <p class="qr-body">
                                         Apunta con la cámara de tu smartphone para validar responsive design, Stripe
-                                        Webhooks y PWA en dispositivos físicos reales.
+                                        Webhooks y PWA en dispositivos físicos reales sin configurar redes locales ni certificados manuales.
                                     </p>
                                 </div>
                             </div>
@@ -405,7 +403,7 @@
 
                             <!-- Snippet representation -->
                             <div class="mock-terminal-snippet">
-                                <div class="snippet-cmd">$ rport tcp 5432</div>
+                                <div class="snippet-cmd">$ npx reverse --tcp 5432</div>
                                 <div class="snippet-res">→ tcp.reverseport.net:19420 ↔ localhost:5432</div>
                                 <div class="snippet-note">Compatible con psql, redis-cli y dbeaver nativo</div>
                             </div>
@@ -413,7 +411,7 @@
 
                         <div class="card-footer-meta">
                             <span>Zero packet reassembly loss</span>
-                            <span class="text-emerald">TCP Anycast</span>
+                            <span class="text-emerald">TCP Stream</span>
                         </div>
                     </div>
 
@@ -451,7 +449,7 @@
                         </div>
                     </div>
 
-                    <!-- Card 4: Arquitectura Abisal de Baja Latencia (Col Span 7) -->
+                    <!-- Card 4: Arquitectura de Red y Rendimiento (Col Span 7) -->
                     <div class="bento-card col-span-7">
                         <div class="card-inner-flex">
                             <div class="card-icon-pill icon-cyan-bright">
@@ -459,20 +457,20 @@
                             </div>
                             <div class="card-text-header">
                                 <div class="card-title-row">
-                                    <h3 class="card-title">Arquitectura Abisal de Baja Latencia</h3>
-                                    <span class="pill-badge-emerald">GLOBAL MESH</span>
+                                    <h3 class="card-title">Arquitectura de Red y Rendimiento</h3>
+                                    <span class="pill-badge-emerald">BAJA LATENCIA</span>
                                 </div>
                                 <p class="card-body-text">
-                                    Malla de POPs mundiales con enrutamiento de memoria compartida en Go. El tráfico se
-                                    entrega por el salto de red más cercano con handshake TLS zero-RTT.
+                                    Enrutamiento de paquetes optimizado con multiplexación de streams y handshake TLS 1.3 directo.
+                                    El tráfico fluye sin capas intermedias infladas ni buffers bloqueantes.
                                 </p>
                             </div>
 
                             <!-- Minimal Global Route Diagram -->
                             <div class="mock-edge-diagram">
                                 <div class="diagram-meta-row">
-                                    <span>Nodos Edge Activos: 28</span>
-                                    <span class="text-emerald font-bold">P99 Latency: 14.3ms</span>
+                                    <span>Conexión Persistente: Multiplexada</span>
+                                    <span class="text-emerald font-bold">P99 Latency: ~14ms</span>
                                 </div>
                                 <div class="progress-bar-composite">
                                     <div class="progress-seg-primary" style="width: 58%"></div>
@@ -480,16 +478,16 @@
                                     <div class="progress-seg-tertiary" style="width: 14%"></div>
                                 </div>
                                 <div class="diagram-regions-row">
-                                    <span>América (8ms)</span>
-                                    <span>Europa (12ms)</span>
-                                    <span>Asia-Pacífico (22ms)</span>
+                                    <span>HTTP/2 Multiplexing</span>
+                                    <span>WebSocket Stream</span>
+                                    <span>TCP Raw Sockets</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="card-footer-meta">
-                            <span>Zero memory allocation en core routing</span>
-                            <span class="text-cyan font-semibold">Kernel bypass epoll</span>
+                            <span>Zero allocations en buffer caliente</span>
+                            <span class="text-cyan font-semibold">TLS 1.3 Zero-RTT</span>
                         </div>
                     </div>
                 </div>
@@ -497,23 +495,22 @@
         </section>
 
         <!-- ====================================================================
-             ESTACIÓN 3: BENCHMARK & LATENCIA (75% - 100% Scroll)
+             ESTACIÓN 3: MATRIZ COMPARATIVA (75% - 100% Scroll)
              ==================================================================== -->
         <section class="scrolly-station-section" id="benchmark-station">
             <div class="station-container layout-benchmark">
                 <div class="benchmark-card-shell">
                     <div class="benchmark-header-row">
                         <div class="benchmark-headings">
-                            <span class="section-tag text-emerald">RENDIMIENTO VALIDADO</span>
-                            <h3 class="benchmark-title">Velocidad Medible. Cero Telemetría.</h3>
+                            <span class="section-tag text-emerald">COMPARATIVA TÉCNICA</span>
+                            <h3 class="benchmark-title">Hecho por y para Desarrolladores.</h3>
                             <p class="benchmark-desc">
-                                Comparativa de latencia roundtrip (RTT) y límites en planes estándar sobre 100,000
-                                peticiones concurrentes HTTP/2.
+                                Comparativa honesta de características clave para el flujo de trabajo diario frente a alternativas del sector.
                             </p>
                         </div>
                         <div class="node-verified-pill">
                             <span class="material-symbols-outlined text-emerald">verified</span>
-                            <span>Prueba realizada en nodo Frankfurt (c6g.xlarge)</span>
+                            <span>100% Sin Cuenta Obligatoria</span>
                         </div>
                     </div>
 
@@ -523,11 +520,11 @@
                             <thead>
                                 <tr>
                                     <th>Solución</th>
-                                    <th>Latencia RTT (p95)</th>
-                                    <th>Límite Ancho de Banda</th>
-                                    <th>Inspector Web</th>
-                                    <th>Código Libre</th>
-                                    <th>Telemetría</th>
+                                    <th>Inspector Web Local</th>
+                                    <th>Túneles TCP (DBs)</th>
+                                    <th>Registro Obligatorio</th>
+                                    <th>QR en Terminal</th>
+                                    <th>Licencia</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -535,45 +532,45 @@
                                 <tr class="row-highlight-reverseport">
                                     <td class="col-brand-name">
                                         <span class="dot-live"></span>
-                                        <strong>reversePort v2.4</strong>
+                                        <strong>reversePort (pulpemerge)</strong>
                                     </td>
-                                    <td class="col-latency text-emerald">11.8 ms (3x más rápido)</td>
-                                    <td class="col-bandwidth">Ilimitado (Gbit link)</td>
                                     <td class="col-inspector text-emerald">
                                         <span class="inspector-badge-inline">
                                             <span class="material-symbols-outlined">check_circle</span>
                                             Localhost:4040
                                         </span>
                                     </td>
-                                    <td class="col-license">100% MIT / Go</td>
-                                    <td class="col-telemetry text-emerald">Cero (Zero-logs)</td>
+                                    <td class="col-bandwidth text-emerald">Sí (Sin cuotas)</td>
+                                    <td class="col-telemetry text-emerald">No (Inmediato)</td>
+                                    <td class="col-latency text-emerald">Sí (Nativo en CLI)</td>
+                                    <td class="col-license">Open Source (MIT)</td>
                                 </tr>
                                 <!-- ngrok row -->
                                 <tr>
-                                    <td class="col-brand-name">Otro A</td>
-                                    <td class="col-latency">34.2 ms</td>
-                                    <td class="col-bandwidth">Limitado por cuotas</td>
-                                    <td class="col-inspector">Propietario</td>
-                                    <td class="col-license">Cerrado (SaaS)</td>
-                                    <td class="col-telemetry text-danger">Auditoría de logs</td>
-                                </tr>
-                                <!-- localtunnel row -->
-                                <tr>
-                                    <td class="col-brand-name">local</td>
-                                    <td class="col-latency">62.8 ms</td>
-                                    <td class="col-bandwidth">Inestable en picos</td>
-                                    <td class="col-inspector text-muted">No incluido</td>
-                                    <td class="col-license">Open Source (Node)</td>
-                                    <td class="col-telemetry">Básica</td>
+                                    <td class="col-brand-name">ngrok</td>
+                                    <td class="col-inspector">Propietario / Límites</td>
+                                    <td class="col-bandwidth">Requiere plan de pago</td>
+                                    <td class="col-telemetry text-danger">Sí (Cuenta requerida)</td>
+                                    <td class="col-latency text-muted">No</td>
+                                    <td class="col-license">Código Cerrado</td>
                                 </tr>
                                 <!-- cloudflared row -->
                                 <tr>
-                                    <td class="col-brand-name">Otro B</td>
-                                    <td class="col-latency">21.5 ms</td>
-                                    <td class="col-bandwidth">Requiere dominio &amp; DNS</td>
-                                    <td class="col-inspector">Panel Remoto Cloud</td>
-                                    <td class="col-license">Apache 2.0</td>
-                                    <td class="col-telemetry">Vinculada a Cuenta</td>
+                                    <td class="col-brand-name">Cloudflare Tunnel</td>
+                                    <td class="col-inspector">Solo panel web Cloud</td>
+                                    <td class="col-bandwidth">Requiere agente local</td>
+                                    <td class="col-telemetry text-danger">Sí (Dominio propio)</td>
+                                    <td class="col-latency text-muted">No</td>
+                                    <td class="col-license">Cliente OSS / SaaS</td>
+                                </tr>
+                                <!-- localtunnel row -->
+                                <tr>
+                                    <td class="col-brand-name">localtunnel</td>
+                                    <td class="col-inspector text-muted">No incluido</td>
+                                    <td class="col-bandwidth text-muted">No soportado</td>
+                                    <td class="col-telemetry text-emerald">No</td>
+                                    <td class="col-latency text-muted">No</td>
+                                    <td class="col-license">Open Source</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -610,7 +607,7 @@
                 </div>
                 <div class="cta-right-flex">
                     <button class="btn-cta-execute" onclick="copyCliCommand()">
-                        <span>Ejecutar npx rport-go 3000</span>
+                        <span>Ejecutar npx pulpemerge 3000</span>
                     </button>
                 </div>
             </div>
@@ -626,13 +623,12 @@
                         <span class="brand-name">reversePort</span>
                     </div>
                     <p class="brand-desc">
-                        Plataforma de tunelización y orquestación de puertos locales para equipos de ingeniería de alto
-                        rendimiento.
+                        Software libre de tunelización y auditoría web para desarrollo local y microservicios.
                     </p>
                 </div>
                 <div class="status-pill-footer">
                     <span class="dot-live"></span>
-                    <span class="status-text">Red Abisal Operativa (99.99%)</span>
+                    <span class="status-text">Red Global Operativa (100%)</span>
                 </div>
             </div>
 
@@ -641,36 +637,38 @@
                     <span class="col-title">HERRAMIENTAS</span>
                     <a href="#terminal-station" class="footer-link">Terminal CLI</a>
                     <a href="#inspector-section" class="footer-link">Inspector Local 4040</a>
-                    <a href="#benchmark-station" class="footer-link">Benchmarks &amp; Latencia</a>
-                    <a href="#hero" class="footer-link">Proxy Reverso Multi-puerto</a>
+                    <a href="#inspector-section" class="footer-link">Túneles TCP (Postgres/Redis)</a>
+                    <a href="#benchmark-station" class="footer-link">Comparativa Técnica</a>
                 </div>
                 <div class="footer-col">
                     <span class="col-title">SEGURIDAD</span>
                     <a href="security.html" class="footer-link">Túneles TLS 1.3</a>
                     <a href="security.html" class="footer-link">Control de Acceso CIDR</a>
-                    <a href="security.html" class="footer-link">Políticas de Tráfico</a>
-                    <a href="security.html" class="footer-link">Tokens de Cifrado Abisal</a>
+                    <a href="security.html" class="footer-link">Cifrado de Extremo a Extremo</a>
+                    <a href="security.html" class="footer-link">Cero Logs ni Telemetría</a>
                 </div>
                 <div class="footer-col">
-                    <span class="col-title">RECURSOS</span>
-                    <a href="#hero" class="footer-link">Guía de Inicio Rápido</a>
-                    <a href="security.html" class="footer-link">Referencia de API</a>
-                    <a href="#terminal-station" class="footer-link">Webhooks &amp; Sockets</a>
-                    <a href="https://github.com/BNABNTMARRTH/transport" target="_blank" class="footer-link">Changelog
-                        v2.4</a>
+                    <span class="col-title">DOCUMENTACIÓN</span>
+                    <a href="#terminal-station" class="footer-link">Guía de Inicio Rápido</a>
+                    <a href="#terminal-station" class="footer-link">Auditoría Móvil QR</a>
+                    <a href="#inspector-section" class="footer-link">Webhooks en Vivo</a>
+                    <a href="#inspector-section" class="footer-link">Arquitectura de Red</a>
                 </div>
                 <div class="footer-col">
-                    <span class="col-title">ECOSISTEMA</span>
+                    <span class="col-title">CÓDIGO LIBRE</span>
                     <a href="https://github.com/BNABNTMARRTH/transport" target="_blank" rel="noreferrer"
                         class="footer-link">GitHub Repository</a>
-                    <a href="#hero" class="footer-link">Docker Container Hub</a>
-                    <a href="#hero" class="footer-link">Discord para Desarrolladores</a>
-                    <a href="#benchmark-station" class="footer-link">Estado del Servicio Global</a>
+                    <a href="https://github.com/BNABNTMARRTH/transport/issues" target="_blank" rel="noreferrer"
+                        class="footer-link">Reportar un Issue</a>
+                    <a href="https://github.com/BNABNTMARRTH/transport/blob/main/LICENSE" target="_blank" rel="noreferrer"
+                        class="footer-link">Licencia MIT</a>
+                    <a href="https://github.com/BNABNTMARRTH/transport/releases" target="_blank" rel="noreferrer"
+                        class="footer-link">Releases &amp; Changelog</a>
                 </div>
             </div>
 
             <div class="footer-bottom-row">
-                <p>© 2026 reversePort Systems. Ingeniería de redes de baja latencia con arquitectura GoF.</p>
+                <p>© 2026 reversePort. Software libre para túneles y desarrollo local.</p>
                 <div class="footer-legal-links">
                     <a href="security.html">Seguridad</a>
                     <a href="security.html">Privacidad</a>
@@ -690,7 +688,7 @@
     <!-- Scripts de la Aplicación -->
     <script>
         function copyCliCommand() {
-            const cmdText = document.getElementById('cmd-text')?.innerText || 'npx rport-go 3000';
+            const cmdText = document.getElementById('cmd-text')?.innerText || 'npx pulpemerge 3000';
             navigator.clipboard.writeText(cmdText).then(() => {
                 const copyLabel = document.getElementById('copy-label');
                 const copyIcon = document.getElementById('copy-icon');

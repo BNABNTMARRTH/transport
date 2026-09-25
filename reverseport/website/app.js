@@ -4,7 +4,7 @@
  */
 
 // 1. GESTOR DE COPIA Y FEEDBACK
-function copyHeroCommand(cmd = 'npx rport-go 3000') {
+function copyHeroCommand(cmd = 'npx pulpemerge 3000') {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(cmd).then(() => onCopySuccess(cmd));
     } else {
@@ -93,28 +93,28 @@ const USE_CASES = {
     webhooks: {
         title: 'Depura Webhooks de Stripe y Shopify en Vivo',
         desc: 'Conecta los eventos de producción o sandbox de Stripe y Shopify a tu servidor local. Si falla la lógica de negocio, reenvía el payload exacto con el botón Replay desde localhost:4040.',
-        cmd: 'npx rport-go 8080 mi-webhook',
+        cmd: 'npx pulpemerge 8080 mi-webhook',
         metricVal: '< 15 ms',
         metricSub: 'Piping TCP directo en Node.js'
     },
     mobile: {
         title: 'Prueba tu API Local en iPhone y Android',
         desc: 'Escanea el código QR renderizado en tu consola directamente con la cámara de tu smartphone para abrir la app web o conectarla a tu frontend Flutter/React Native.',
-        cmd: 'npx rport-go 3000',
+        cmd: 'npx pulpemerge 3000',
         metricVal: '0 s',
         metricSub: 'Sin necesidad de túneles manuales'
     },
     demos: {
         title: 'Comparte Prototipos con Clientes sin Desplegar',
         desc: 'Envía un enlace seguro HTTPS con tu subdominio personalizado a inversionistas o clientes para que interactúen con tu avance en tiempo real desde tu propia máquina.',
-        cmd: 'npx rport-go 3000 demo-cliente',
+        cmd: 'npx pulpemerge 3000 demo-cliente',
         metricVal: '100%',
         metricSub: 'SSL Wildcard automático cifrado'
     },
     databases: {
         title: 'Conexión Remota a PostgreSQL y Terminal SSH',
         desc: 'Expón tu base de datos local o puerto SSH a través de un túnel TCP puro con un puerto público dinámico del Hub (10000-10100) sin restricciones HTTP.',
-        cmd: 'npx rport-go --tcp 5432',
+        cmd: 'npx reverse --tcp 5432',
         metricVal: 'TCP Puro',
         metricSub: 'Soporte Postgres, MySQL, Redis, SSH'
     }
